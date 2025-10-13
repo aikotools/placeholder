@@ -4,7 +4,7 @@ A powerful placeholder template engine with generate and compare modes for E2E t
 
 [![GitHub](https://img.shields.io/badge/github-%23121011.svg?style=flat&logo=github&logoColor=white)](https://github.com/aikotools/placeholder)
 [![npm version](https://badge.fury.io/js/@aikotools%2Fplaceholder.svg)](https://www.npmjs.com/package/@aikotools/placeholder)
-[![License: DBISL](https://img.shields.io/badge/License-DBISL-blue.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 ## Table of Contents
 
@@ -2095,7 +2095,7 @@ try {
 
 ## License
 
-DBISL - See [LICENSE](LICENSE) file for details.
+MIT - See [LICENSE](LICENSE) file for details.
 
 ## Contributing
 
