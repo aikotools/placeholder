@@ -3,7 +3,7 @@ name: Release
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+  NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 on:
   push:
@@ -32,13 +32,9 @@ jobs:
           node-version: ${{ matrix.node-version }}
 
       - run: npm ci
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      
       - run: npm test
 
       - run: npx semantic-release
         env:
           CI: 'true'
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
