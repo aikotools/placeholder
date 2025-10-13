@@ -1,10 +1,10 @@
-import { PlaceholderParser } from './PlaceholderParser';
-import { PluginRegistry } from './PluginRegistry';
-import { JsonProcessor } from '../formats/JsonProcessor';
-import { TextProcessor } from '../formats/TextProcessor';
-import type { ProcessOptions, CompareOptions, CompareResult } from './types';
-import type { PlaceholderPlugin } from '../plugins/PlaceholderPlugin';
-import type { Transform } from '../transforms/Transform';
+import { PlaceholderParser } from './PlaceholderParser'
+import { PluginRegistry } from './PluginRegistry'
+import { JsonProcessor } from '../formats/JsonProcessor'
+import { TextProcessor } from '../formats/TextProcessor'
+import type { ProcessOptions, CompareOptions, CompareResult } from './types'
+import type { PlaceholderPlugin } from '../plugins/PlaceholderPlugin'
+import type { Transform } from '../transforms/Transform'
 
 /**
  * Main engine for placeholder processing
@@ -29,16 +29,16 @@ import type { Transform } from '../transforms/Transform';
  * ```
  */
 export class PlaceholderEngine {
-  private parser: PlaceholderParser;
-  private registry: PluginRegistry;
-  private jsonProcessor: JsonProcessor;
-  private textProcessor: TextProcessor;
+  private parser: PlaceholderParser
+  private registry: PluginRegistry
+  private jsonProcessor: JsonProcessor
+  private textProcessor: TextProcessor
 
   constructor() {
-    this.parser = new PlaceholderParser();
-    this.registry = new PluginRegistry();
-    this.jsonProcessor = new JsonProcessor(this.parser, this.registry);
-    this.textProcessor = new TextProcessor(this.parser, this.registry);
+    this.parser = new PlaceholderParser()
+    this.registry = new PluginRegistry()
+    this.jsonProcessor = new JsonProcessor(this.parser, this.registry)
+    this.textProcessor = new TextProcessor(this.parser, this.registry)
   }
 
   /**
@@ -47,7 +47,7 @@ export class PlaceholderEngine {
    * @param plugin - Plugin to register
    */
   registerPlugin(plugin: PlaceholderPlugin): void {
-    this.registry.registerPlugin(plugin);
+    this.registry.registerPlugin(plugin)
   }
 
   /**
@@ -56,7 +56,7 @@ export class PlaceholderEngine {
    * @param plugins - Array of plugins to register
    */
   registerPlugins(plugins: PlaceholderPlugin[]): void {
-    this.registry.registerPlugins(plugins);
+    this.registry.registerPlugins(plugins)
   }
 
   /**
@@ -65,7 +65,7 @@ export class PlaceholderEngine {
    * @param transform - Transform to register
    */
   registerTransform(transform: Transform): void {
-    this.registry.registerTransform(transform);
+    this.registry.registerTransform(transform)
   }
 
   /**
@@ -74,7 +74,7 @@ export class PlaceholderEngine {
    * @param transforms - Array of transforms to register
    */
   registerTransforms(transforms: Transform[]): void {
-    this.registry.registerTransforms(transforms);
+    this.registry.registerTransforms(transforms)
   }
 
   /**
@@ -90,17 +90,17 @@ export class PlaceholderEngine {
     // Select processor based on format
     switch (options.format) {
       case 'json':
-        return await this.jsonProcessor.process(content, options);
+        return await this.jsonProcessor.process(content, options)
 
       case 'text':
-        return await this.textProcessor.process(content, options);
+        return await this.textProcessor.process(content, options)
 
       case 'xml':
         // XML processor not implemented yet
-        throw new Error('XML format not yet implemented');
+        throw new Error('XML format not yet implemented')
 
       default:
-        throw new Error(`Unknown format: ${options.format}`);
+        throw new Error(`Unknown format: ${options.format}`)
     }
   }
 
@@ -121,7 +121,7 @@ export class PlaceholderEngine {
     _options: CompareOptions
   ): Promise<CompareResult> {
     // To be implemented in Phase 6
-    throw new Error('Compare mode not yet implemented');
+    throw new Error('Compare mode not yet implemented')
   }
 
   /**
@@ -150,7 +150,7 @@ export class PlaceholderEngine {
       mode: 'generate',
       includePlugins: ['gen'],
       context: options.context,
-    });
+    })
 
     // Phase 2: Time phase (only time module)
     const afterTime = await this.processGenerate(afterGen, {
@@ -158,23 +158,23 @@ export class PlaceholderEngine {
       mode: 'generate',
       includePlugins: ['time'],
       context: options.context,
-    });
+    })
 
     // Phase 3: Compare phase (convert to matchers and compare)
-    return await this.processCompare(actual, afterTime, options);
+    return await this.processCompare(actual, afterTime, options)
   }
 
   /**
    * Get the parser instance (for advanced usage)
    */
   getParser(): PlaceholderParser {
-    return this.parser;
+    return this.parser
   }
 
   /**
    * Get the registry instance (for advanced usage)
    */
   getRegistry(): PluginRegistry {
-    return this.registry;
+    return this.registry
   }
 }

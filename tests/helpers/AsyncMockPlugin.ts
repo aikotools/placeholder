@@ -1,11 +1,4 @@
-import type { PlaceholderPlugin } from './PlaceholderPlugin';
-import type {
-  PluginResolveRequest,
-  PluginMatcherRequest,
-  PlaceholderResult,
-  MatchContext,
-} from '../core/types';
-import type { Matcher } from '../compare/Matcher';
+import type { PlaceholderPlugin, PluginResolveRequest, PluginMatcherRequest, PlaceholderResult, MatchContext, Matcher } from '../../src'
 
 /**
  * Async mock plugin for testing asynchronous plugin resolution
@@ -24,16 +17,16 @@ import type { Matcher } from '../compare/Matcher';
  * - {{asyncMock:uppercase:test}} → "TEST" (via Promise)
  */
 export class AsyncMockPlugin implements PlaceholderPlugin {
-  readonly name = 'asyncMock';
+  readonly name = 'asyncMock'
 
   async resolve(request: PluginResolveRequest): Promise<PlaceholderResult> {
-    const { action, args } = request.placeholder;
+    const { action, args } = request.placeholder
 
     if (args.length === 0) {
-      throw new Error(`AsyncMock plugin: action '${action}' requires at least one argument`);
+      throw new Error(`AsyncMock plugin: action '${action}' requires at least one argument`)
     }
 
-    const value = args[0];
+    const value = args[0]
 
     switch (action) {
       case 'echo':
@@ -44,7 +37,7 @@ export class AsyncMockPlugin implements PlaceholderPlugin {
             type: 'string',
           },
           1
-        );
+        )
 
       case 'uppercase':
         return this.delay(
@@ -53,22 +46,22 @@ export class AsyncMockPlugin implements PlaceholderPlugin {
             type: 'string',
           },
           1
-        );
+        )
 
       case 'delay':
-        const delayMs = args.length > 1 ? parseInt(args[1], 10) : 10;
+        const delayMs = args.length > 1 ? parseInt(args[1], 10) : 10
         return this.delay(
           {
             value,
             type: 'string',
           },
           delayMs
-        );
+        )
 
       case 'number':
-        const num = Number(value);
+        const num = Number(value)
         if (isNaN(num)) {
-          throw new Error(`AsyncMock plugin: cannot convert '${value}' to number`);
+          throw new Error(`AsyncMock plugin: cannot convert '${value}' to number`)
         }
         return this.delay(
           {
@@ -76,16 +69,16 @@ export class AsyncMockPlugin implements PlaceholderPlugin {
             type: 'number',
           },
           1
-        );
+        )
 
       case 'fetchValue':
         // Simulate fetching from external source
-        return this.simulateFetch(value);
+        return this.simulateFetch(value)
 
       default:
         throw new Error(
           `AsyncMock plugin: unknown action '${action}'. Available: echo, uppercase, delay, number, fetchValue`
-        );
+        )
     }
   }
 
@@ -94,8 +87,8 @@ export class AsyncMockPlugin implements PlaceholderPlugin {
    */
   private delay(result: PlaceholderResult, ms: number): Promise<PlaceholderResult> {
     return new Promise(resolve => {
-      setTimeout(() => resolve(result), ms);
-    });
+      setTimeout(() => resolve(result), ms)
+    })
   }
 
   /**
@@ -103,7 +96,7 @@ export class AsyncMockPlugin implements PlaceholderPlugin {
    */
   private async simulateFetch(key: string): Promise<PlaceholderResult> {
     // Simulate network delay
-    await this.delay({ value: null, type: 'string' }, 5);
+    await this.delay({ value: null, type: 'string' }, 5)
 
     // Return mock data based on key
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -111,19 +104,19 @@ export class AsyncMockPlugin implements PlaceholderPlugin {
       user: 'John Doe',
       age: 30,
       active: true,
-    };
-
-    if (key in mockData) {
-      const value = mockData[key];
-      const type = typeof value as 'string' | 'number' | 'boolean';
-      return { value, type };
     }
 
-    throw new Error(`AsyncMock plugin: key '${key}' not found in mock data`);
+    if (key in mockData) {
+      const value = mockData[key]
+      const type = typeof value as 'string' | 'number' | 'boolean'
+      return { value, type }
+    }
+
+    throw new Error(`AsyncMock plugin: key '${key}' not found in mock data`)
   }
 
   createMatcher?(request: PluginMatcherRequest): Matcher {
-    const { action, args } = request.placeholder;
+    const { action, args } = request.placeholder
 
     return {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -131,8 +124,8 @@ export class AsyncMockPlugin implements PlaceholderPlugin {
         return {
           success: true,
           error: `AsyncMock matcher for action '${action}' with args [${args.join(', ')}]`,
-        };
+        }
       },
-    };
+    }
   }
 }

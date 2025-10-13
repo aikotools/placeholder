@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { DateTime } from 'luxon';
-import { PlaceholderEngine } from '@core/PlaceholderEngine';
-import { TimePlugin } from '@/plugins/TimePlugin';
+import { PlaceholderEngine, TimePlugin } from '../../src';
 
 /**
  * Integration tests for escaped colons in placeholders

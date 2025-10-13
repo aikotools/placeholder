@@ -1,5 +1,5 @@
-import type { PlaceholderResult } from '../core/types';
-import type { Transform } from './Transform';
+import type { PlaceholderResult } from '../core/types'
+import type { Transform } from './Transform'
 
 /**
  * Transform that converts values to booleans
@@ -20,41 +20,41 @@ import type { Transform } from './Transform';
  * - "any string" → true
  */
 export class ToBooleanTransform implements Transform {
-  readonly name = 'toBoolean';
+  readonly name = 'toBoolean'
 
-  private readonly truthyStrings = new Set(['true', 'yes', '1', 'on', 'y']);
-  private readonly falsyStrings = new Set(['false', 'no', '0', 'off', 'n', '']);
+  private readonly truthyStrings = new Set(['true', 'yes', '1', 'on', 'y'])
+  private readonly falsyStrings = new Set(['false', 'no', '0', 'off', 'n', ''])
 
   apply(input: PlaceholderResult, _params: string[]): PlaceholderResult {
     // If already a boolean, return as-is
     if (input.type === 'boolean') {
-      return input;
+      return input
     }
 
-    let boolValue: boolean;
+    let boolValue: boolean
 
     if (typeof input.value === 'string') {
-      const lower = input.value.toLowerCase().trim();
+      const lower = input.value.toLowerCase().trim()
 
       if (this.truthyStrings.has(lower)) {
-        boolValue = true;
+        boolValue = true
       } else if (this.falsyStrings.has(lower)) {
-        boolValue = false;
+        boolValue = false
       } else {
         // Non-empty strings that don't match known patterns are truthy
-        boolValue = Boolean(input.value);
+        boolValue = Boolean(input.value)
       }
     } else if (typeof input.value === 'number') {
       // 0 is false, everything else is true
-      boolValue = input.value !== 0;
+      boolValue = input.value !== 0
     } else {
       // Use JavaScript truthiness
-      boolValue = Boolean(input.value);
+      boolValue = Boolean(input.value)
     }
 
     return {
       value: boolValue,
       type: 'boolean',
-    };
+    }
   }
 }

@@ -1,9 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { DateTime } from 'luxon';
-import { PlaceholderEngine } from '@core/PlaceholderEngine';
-import { TimePlugin } from '@/plugins/TimePlugin';
-import { GeneratorPlugin } from '@/plugins/GeneratorPlugin';
-import { ToNumberTransform, ToStringTransform, ToBooleanTransform } from '@/transforms';
+import { PlaceholderEngine, TimePlugin, GeneratorPlugin, ToNumberTransform, ToStringTransform, ToBooleanTransform } from '../../src';
 
 /**
  * End-to-End Integration Tests

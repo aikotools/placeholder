@@ -1,4 +1,4 @@
-import type { ParsedPlaceholder, ParsedTransform } from './types';
+import type { ParsedPlaceholder, ParsedTransform } from './types'
 
 /**
  * Parser for placeholder strings
@@ -16,46 +16,46 @@ export class PlaceholderParser {
    * Check if a string is a placeholder
    */
   isPlaceholder(value: string): boolean {
-    return /^{{.+}}$/.test(value.trim());
+    return /^{{.+}}$/.test(value.trim())
   }
 
   /**
    * Find all placeholders in a string (including nested ones)
    */
   findPlaceholders(content: string): string[] {
-    const placeholders = new Set<string>();
-    this.findPlaceholdersRecursive(content, placeholders);
-    return Array.from(placeholders);
+    const placeholders = new Set<string>()
+    this.findPlaceholdersRecursive(content, placeholders)
+    return Array.from(placeholders)
   }
 
   /**
    * Recursively find all placeholders
    */
   private findPlaceholdersRecursive(content: string, placeholders: Set<string>): void {
-    let depth = 0;
-    let start = -1;
+    let depth = 0
+    let start = -1
 
     for (let i = 0; i < content.length; i++) {
-      const char = content[i];
-      const next = content[i + 1];
+      const char = content[i]
+      const next = content[i + 1]
 
       if (char === '{' && next === '{') {
         if (depth === 0) {
-          start = i;
+          start = i
         }
-        depth++;
-        i++; // Skip next {
+        depth++
+        i++ // Skip next {
       } else if (char === '}' && next === '}') {
-        depth--;
+        depth--
         if (depth === 0 && start !== -1) {
-          const placeholder = content.slice(start, i + 2);
-          placeholders.add(placeholder);
+          const placeholder = content.slice(start, i + 2)
+          placeholders.add(placeholder)
 
           // Recursively find nested placeholders
-          const inner = placeholder.slice(2, -2);
-          this.findPlaceholdersRecursive(inner, placeholders);
+          const inner = placeholder.slice(2, -2)
+          this.findPlaceholdersRecursive(inner, placeholders)
         }
-        i++; // Skip next }
+        i++ // Skip next }
       }
     }
   }
@@ -68,23 +68,23 @@ export class PlaceholderParser {
    * @throws Error if placeholder format is invalid
    */
   parse(placeholder: string): ParsedPlaceholder {
-    const trimmed = placeholder.trim();
+    const trimmed = placeholder.trim()
 
     if (!this.isPlaceholder(trimmed)) {
-      throw new Error(`Invalid placeholder format: ${placeholder}`);
+      throw new Error(`Invalid placeholder format: ${placeholder}`)
     }
 
     // Remove {{ and }}
-    const inner = trimmed.slice(2, -2);
+    const inner = trimmed.slice(2, -2)
 
     // Split by | to separate main part and transforms
-    const [mainPart, ...transformParts] = this.splitByPipe(inner);
+    const [mainPart, ...transformParts] = this.splitByPipe(inner)
 
     // Parse main part (module:action:args)
-    const { module, action, args } = this.parseMainPart(mainPart);
+    const { module, action, args } = this.parseMainPart(mainPart)
 
     // Parse transforms
-    const transforms = transformParts.map(t => this.parseTransform(t));
+    const transforms = transformParts.map(t => this.parseTransform(t))
 
     return {
       original: trimmed,
@@ -92,117 +92,117 @@ export class PlaceholderParser {
       action,
       args,
       transforms,
-    };
+    }
   }
 
   /**
    * Split by pipe (|) but respect nested placeholders
    */
   private splitByPipe(content: string): string[] {
-    const parts: string[] = [];
-    let current = '';
-    let depth = 0;
+    const parts: string[] = []
+    let current = ''
+    let depth = 0
 
     for (let i = 0; i < content.length; i++) {
-      const char = content[i];
-      const next = content[i + 1];
+      const char = content[i]
+      const next = content[i + 1]
 
       if (char === '{' && next === '{') {
-        depth++;
-        current += char;
+        depth++
+        current += char
       } else if (char === '}' && next === '}') {
-        depth--;
-        current += char;
+        depth--
+        current += char
       } else if (char === '|' && depth === 0) {
-        parts.push(current.trim());
-        current = '';
+        parts.push(current.trim())
+        current = ''
       } else {
-        current += char;
+        current += char
       }
     }
 
     if (current) {
-      parts.push(current.trim());
+      parts.push(current.trim())
     }
 
-    return parts;
+    return parts
   }
 
   /**
    * Parse main part: module:action:args
    */
   private parseMainPart(mainPart: string): {
-    module: string;
-    action: string;
-    args: string[];
+    module: string
+    action: string
+    args: string[]
   } {
     // Split by : but respect nested placeholders
-    const parts = this.splitByColon(mainPart);
+    const parts = this.splitByColon(mainPart)
 
     if (parts.length < 2) {
       throw new Error(
         `Invalid placeholder format. Expected at least module:action, got: ${mainPart}`
-      );
+      )
     }
 
-    const [module, action, ...args] = parts;
+    const [module, action, ...args] = parts
 
     return {
       module: module.trim(),
       action: action.trim(),
       args: args.map(arg => arg.trim()),
-    };
+    }
   }
 
   /**
    * Split by colon (:) but respect nested placeholders and escaped colons (\:)
    */
   private splitByColon(content: string): string[] {
-    const parts: string[] = [];
-    let current = '';
-    let depth = 0;
+    const parts: string[] = []
+    let current = ''
+    let depth = 0
 
     for (let i = 0; i < content.length; i++) {
-      const char = content[i];
-      const next = content[i + 1];
+      const char = content[i]
+      const next = content[i + 1]
 
       if (char === '{' && next === '{') {
-        depth++;
-        current += char;
+        depth++
+        current += char
       } else if (char === '}' && next === '}') {
-        depth--;
-        current += char;
+        depth--
+        current += char
       } else if (char === '\\' && next === ':') {
         // Escaped colon: \: → :
-        current += ':';
-        i++; // Skip the next character (:)
+        current += ':'
+        i++ // Skip the next character (:)
       } else if (char === ':' && depth === 0) {
         // Unescaped colon at depth 0: split here
-        parts.push(current.trim());
-        current = '';
+        parts.push(current.trim())
+        current = ''
       } else {
-        current += char;
+        current += char
       }
     }
 
     if (current) {
-      parts.push(current.trim());
+      parts.push(current.trim())
     }
 
-    return parts;
+    return parts
   }
 
   /**
    * Parse a transform: name or name:param1:param2
    */
   private parseTransform(transformStr: string): ParsedTransform {
-    const parts = transformStr.split(':').map(p => p.trim());
-    const [name, ...params] = parts;
+    const parts = transformStr.split(':').map(p => p.trim())
+    const [name, ...params] = parts
 
     return {
       name,
       params,
-    };
+    }
   }
 
   /**
@@ -216,33 +216,33 @@ export class PlaceholderParser {
    * @returns Content with replaced placeholders
    */
   replaceAll(content: string, resolveFn: (placeholder: string) => string): string {
-    let result = content;
-    let previousResult = '';
-    let iterations = 0;
-    const maxIterations = 10; // Prevent infinite loops
+    let result = content
+    let previousResult = ''
+    let iterations = 0
+    const maxIterations = 10 // Prevent infinite loops
 
     // Keep replacing until no more changes occur
     while (result !== previousResult && iterations < maxIterations) {
-      previousResult = result;
-      const placeholders = this.findPlaceholders(result);
+      previousResult = result
+      const placeholders = this.findPlaceholders(result)
 
       if (placeholders.length === 0) {
-        break;
+        break
       }
 
       // Sort by position (order of occurrence in content)
       // For nested placeholders, sort by depth (innermost first)
-      const sorted = this.sortPlaceholdersByPosition(result, placeholders);
+      const sorted = this.sortPlaceholdersByPosition(result, placeholders)
 
       for (const placeholder of sorted) {
-        const resolved = resolveFn(placeholder);
-        result = result.replaceAll(placeholder, resolved);
+        const resolved = resolveFn(placeholder)
+        result = result.replaceAll(placeholder, resolved)
       }
 
-      iterations++;
+      iterations++
     }
 
-    return result;
+    return result
   }
 
   /**
@@ -251,15 +251,15 @@ export class PlaceholderParser {
    */
   private sortPlaceholdersByPosition(content: string, placeholders: string[]): string[] {
     return placeholders.sort((a, b) => {
-      const posA = content.indexOf(a);
-      const posB = content.indexOf(b);
+      const posA = content.indexOf(a)
+      const posB = content.indexOf(b)
 
       // If one contains the other, inner one should come first
-      if (a.includes(b)) return 1; // b is inside a, so b comes first
-      if (b.includes(a)) return -1; // a is inside b, so a comes first
+      if (a.includes(b)) return 1 // b is inside a, so b comes first
+      if (b.includes(a)) return -1 // a is inside b, so a comes first
 
       // Otherwise, sort by position
-      return posA - posB;
-    });
+      return posA - posB
+    })
   }
 }

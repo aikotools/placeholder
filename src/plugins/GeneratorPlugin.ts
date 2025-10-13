@@ -1,6 +1,6 @@
-import type { PlaceholderPlugin } from './PlaceholderPlugin';
-import type { PluginResolveRequest, PluginMatcherRequest, PlaceholderResult } from '../core/types';
-import type { Matcher } from '../compare/Matcher';
+import type { PlaceholderPlugin } from './PlaceholderPlugin'
+import type { PluginResolveRequest, PluginMatcherRequest, PlaceholderResult } from '../core/types'
+import type { Matcher } from '../compare/Matcher'
 
 /**
  * Generator Plugin for creating test data
@@ -18,29 +18,29 @@ import type { Matcher } from '../compare/Matcher';
  * - {{gen:zugnummer:4837}} → 4837
  */
 export class GeneratorPlugin implements PlaceholderPlugin {
-  readonly name = 'gen';
+  readonly name = 'gen'
 
   resolve(request: PluginResolveRequest): PlaceholderResult {
-    const { action, args } = request.placeholder;
+    const { action, args } = request.placeholder
 
     switch (action) {
       case 'uuid':
-        return this.handleUuid(args);
+        return this.handleUuid(args)
 
       case 'number':
       case 'zugnummer': // Alias for number
-        return this.handleNumber(args);
+        return this.handleNumber(args)
 
       case 'string':
-        return this.handleString(args);
+        return this.handleString(args)
 
       case 'boolean':
-        return this.handleBoolean(args);
+        return this.handleBoolean(args)
 
       default:
         throw new Error(
           `Generator plugin: unknown action '${action}'. Available: uuid, number, zugnummer, string, boolean`
-        );
+        )
     }
   }
 
@@ -57,20 +57,20 @@ export class GeneratorPlugin implements PlaceholderPlugin {
    * @returns UUID/ID string
    */
   private handleUuid(args: string[]): PlaceholderResult {
-    let uuid: string;
+    let uuid: string
 
     if (args.length > 0 && args[0]) {
       // Use provided UUID/ID (no validation - allows any identifier for tests)
-      uuid = args[0];
+      uuid = args[0]
     } else {
       // Generate random UUID (v4 format)
-      uuid = this.generateUuid();
+      uuid = this.generateUuid()
     }
 
     return {
       value: uuid,
       type: 'string',
-    };
+    }
   }
 
   /**
@@ -83,24 +83,24 @@ export class GeneratorPlugin implements PlaceholderPlugin {
    * @returns Number value
    */
   private handleNumber(args: string[]): PlaceholderResult {
-    let value: number;
+    let value: number
 
     if (args.length > 0 && args[0]) {
       // Use provided number
-      value = parseFloat(args[0]);
+      value = parseFloat(args[0])
 
       if (isNaN(value)) {
-        throw new Error(`Generator plugin: invalid number '${args[0]}'`);
+        throw new Error(`Generator plugin: invalid number '${args[0]}'`)
       }
     } else {
       // Generate random number (0-9999)
-      value = Math.floor(Math.random() * 10000);
+      value = Math.floor(Math.random() * 10000)
     }
 
     return {
       value,
       type: 'number',
-    };
+    }
   }
 
   /**
@@ -113,20 +113,20 @@ export class GeneratorPlugin implements PlaceholderPlugin {
    * @returns String value
    */
   private handleString(args: string[]): PlaceholderResult {
-    let value: string;
+    let value: string
 
     if (args.length > 0 && args[0]) {
       // Use provided string
-      value = args[0];
+      value = args[0]
     } else {
       // Generate random string
-      value = this.generateRandomString(8);
+      value = this.generateRandomString(8)
     }
 
     return {
       value,
       type: 'string',
-    };
+    }
   }
 
   /**
@@ -139,27 +139,27 @@ export class GeneratorPlugin implements PlaceholderPlugin {
    * @returns Boolean value
    */
   private handleBoolean(args: string[]): PlaceholderResult {
-    let value: boolean;
+    let value: boolean
 
     if (args.length > 0 && args[0]) {
       // Parse provided boolean
-      const arg = args[0].toLowerCase();
+      const arg = args[0].toLowerCase()
       if (arg === 'true' || arg === '1' || arg === 'yes') {
-        value = true;
+        value = true
       } else if (arg === 'false' || arg === '0' || arg === 'no') {
-        value = false;
+        value = false
       } else {
-        throw new Error(`Generator plugin: invalid boolean '${args[0]}'`);
+        throw new Error(`Generator plugin: invalid boolean '${args[0]}'`)
       }
     } else {
       // Generate random boolean
-      value = Math.random() >= 0.5;
+      value = Math.random() >= 0.5
     }
 
     return {
       value,
       type: 'boolean',
-    };
+    }
   }
 
   /**
@@ -170,10 +170,10 @@ export class GeneratorPlugin implements PlaceholderPlugin {
   private generateUuid(): string {
     // Simple UUID v4 generation
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-      const r = (Math.random() * 16) | 0;
-      const v = c === 'x' ? r : (r & 0x3) | 0x8;
-      return v.toString(16);
-    });
+      const r = (Math.random() * 16) | 0
+      const v = c === 'x' ? r : (r & 0x3) | 0x8
+      return v.toString(16)
+    })
   }
 
   /**
@@ -183,12 +183,12 @@ export class GeneratorPlugin implements PlaceholderPlugin {
    * @returns Random string
    */
   private generateRandomString(length: number): string {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let result = '';
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+    let result = ''
     for (let i = 0; i < length; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
+      result += chars.charAt(Math.floor(Math.random() * chars.length))
     }
-    return result;
+    return result
   }
 
   /**
@@ -197,7 +197,7 @@ export class GeneratorPlugin implements PlaceholderPlugin {
    * Will be fully implemented in Phase 6
    */
   createMatcher?(request: PluginMatcherRequest): Matcher {
-    const { action, args } = request.placeholder;
+    const { action, args } = request.placeholder
 
     return {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -205,8 +205,8 @@ export class GeneratorPlugin implements PlaceholderPlugin {
         return {
           success: true,
           error: `Generator matcher for action '${action}' with args [${args.join(', ')}] - not yet implemented`,
-        };
+        }
       },
-    };
+    }
   }
 }

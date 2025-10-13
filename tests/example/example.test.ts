@@ -2,10 +2,7 @@ import { describe, it, expect, beforeEach, beforeAll } from 'vitest';
 import { DateTime } from 'luxon';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { PlaceholderEngine } from '@core/PlaceholderEngine';
-import { TimePlugin } from '@/plugins/TimePlugin';
-import { GeneratorPlugin } from '@/plugins/GeneratorPlugin';
-import { ToNumberTransform, ToStringTransform, ToBooleanTransform } from '@/transforms';
+import { PlaceholderEngine, TimePlugin, GeneratorPlugin, ToNumberTransform, ToStringTransform, ToBooleanTransform } from '../../src';
 
 /**
  * Example Test - Real-World Usage

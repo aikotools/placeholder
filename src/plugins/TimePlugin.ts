@@ -1,7 +1,7 @@
-import { DateTime, Duration } from 'luxon';
-import type { PlaceholderPlugin } from './PlaceholderPlugin';
-import type { PluginResolveRequest, PluginMatcherRequest, PlaceholderResult } from '../core/types';
-import type { Matcher } from '../compare/Matcher';
+import { DateTime, Duration } from 'luxon'
+import type { PlaceholderPlugin } from './PlaceholderPlugin'
+import type { PluginResolveRequest, PluginMatcherRequest, PlaceholderResult } from '../core/types'
+import type { Matcher } from '../compare/Matcher'
 
 /**
  * Time Plugin for date/time calculations and formatting
@@ -21,20 +21,20 @@ import type { Matcher } from '../compare/Matcher';
  * Supported units: milliseconds, seconds, minutes, hours, days, weeks, months, years
  */
 export class TimePlugin implements PlaceholderPlugin {
-  readonly name = 'time';
+  readonly name = 'time'
 
   resolve(request: PluginResolveRequest): PlaceholderResult {
-    const { action, args } = request.placeholder;
+    const { action, args } = request.placeholder
 
     switch (action) {
       case 'calc':
-        return this.handleCalc(args, request.context);
+        return this.handleCalc(args, request.context)
 
       case 'format':
-        return this.handleFormat(args);
+        return this.handleFormat(args)
 
       default:
-        throw new Error(`Time plugin: unknown action '${action}'. Available: calc, format`);
+        throw new Error(`Time plugin: unknown action '${action}'. Available: calc, format`)
     }
   }
 
@@ -52,26 +52,26 @@ export class TimePlugin implements PlaceholderPlugin {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private handleCalc(args: string[], context: Record<string, any>): PlaceholderResult {
     if (args.length < 2) {
-      throw new Error('Time plugin calc: requires 2 arguments (offset, unit/format)');
+      throw new Error('Time plugin calc: requires 2 arguments (offset, unit/format)')
     }
 
-    const offset = parseFloat(args[0]);
+    const offset = parseFloat(args[0])
     if (isNaN(offset)) {
-      throw new Error(`Time plugin calc: invalid offset '${args[0]}'`);
+      throw new Error(`Time plugin calc: invalid offset '${args[0]}'`)
     }
 
-    const unitOrFormat = args[1];
+    const unitOrFormat = args[1]
 
     // Get base time from context
-    const baseTime = this.getBaseTime(context);
+    const baseTime = this.getBaseTime(context)
 
     // Check if second argument is a time unit or a date format
     if (this.isTimeUnit(unitOrFormat)) {
       // Return Unix timestamp in SECONDS (consistent for all time units)
-      return this.calculateTimestamp(baseTime, offset, unitOrFormat);
+      return this.calculateTimestamp(baseTime, offset, unitOrFormat)
     } else {
       // Return formatted date string
-      return this.calculateAndFormat(baseTime, offset, unitOrFormat);
+      return this.calculateAndFormat(baseTime, offset, unitOrFormat)
     }
   }
 
@@ -87,28 +87,28 @@ export class TimePlugin implements PlaceholderPlugin {
    */
   private handleFormat(args: string[]): PlaceholderResult {
     if (args.length < 2) {
-      throw new Error('Time plugin format: requires 2 arguments (timestamp, format)');
+      throw new Error('Time plugin format: requires 2 arguments (timestamp, format)')
     }
 
-    const timestamp = parseFloat(args[0]);
+    const timestamp = parseFloat(args[0])
     if (isNaN(timestamp)) {
-      throw new Error(`Time plugin format: invalid timestamp '${args[0]}'`);
+      throw new Error(`Time plugin format: invalid timestamp '${args[0]}'`)
     }
 
-    const format = args[1];
+    const format = args[1]
 
     // Detect if timestamp is in seconds (< 10 billion) or milliseconds
-    const isSeconds = timestamp < 10000000000;
+    const isSeconds = timestamp < 10000000000
     const dt = isSeconds
       ? DateTime.fromSeconds(timestamp, { zone: 'utc' })
-      : DateTime.fromMillis(timestamp, { zone: 'utc' });
+      : DateTime.fromMillis(timestamp, { zone: 'utc' })
 
-    const formatted = dt.toFormat(format);
+    const formatted = dt.toFormat(format)
 
     return {
       value: formatted,
       type: 'string',
-    };
+    }
   }
 
   /**
@@ -124,16 +124,16 @@ export class TimePlugin implements PlaceholderPlugin {
   private getBaseTime(context: Record<string, any>): DateTime {
     // Try startTimeTest first
     if (context.startTimeTest) {
-      return this.parseContextTime(context.startTimeTest);
+      return this.parseContextTime(context.startTimeTest)
     }
 
     // Try startTimeScript
     if (context.startTimeScript) {
-      return this.parseContextTime(context.startTimeScript);
+      return this.parseContextTime(context.startTimeScript)
     }
 
     // Default to current time in UTC
-    return DateTime.utc();
+    return DateTime.utc()
   }
 
   /**
@@ -146,25 +146,25 @@ export class TimePlugin implements PlaceholderPlugin {
   private parseContextTime(value: any): DateTime {
     if (typeof value === 'string') {
       // Try parsing as ISO string
-      const dt = DateTime.fromISO(value);
-      if (dt.isValid) return dt;
+      const dt = DateTime.fromISO(value)
+      if (dt.isValid) return dt
 
       // Try parsing as number string
-      const num = parseFloat(value);
+      const num = parseFloat(value)
       if (!isNaN(num)) {
-        const isSeconds = num < 10000000000;
+        const isSeconds = num < 10000000000
         return isSeconds
           ? DateTime.fromSeconds(num, { zone: 'utc' })
-          : DateTime.fromMillis(num, { zone: 'utc' });
+          : DateTime.fromMillis(num, { zone: 'utc' })
       }
     } else if (typeof value === 'number') {
-      const isSeconds = value < 10000000000;
+      const isSeconds = value < 10000000000
       return isSeconds
         ? DateTime.fromSeconds(value, { zone: 'utc' })
-        : DateTime.fromMillis(value, { zone: 'utc' });
+        : DateTime.fromMillis(value, { zone: 'utc' })
     }
 
-    throw new Error(`Time plugin: cannot parse time value '${value}'`);
+    throw new Error(`Time plugin: cannot parse time value '${value}'`)
   }
 
   /**
@@ -183,8 +183,8 @@ export class TimePlugin implements PlaceholderPlugin {
       'weeks',
       'months',
       'years',
-    ];
-    return validUnits.includes(unit.toLowerCase());
+    ]
+    return validUnits.includes(unit.toLowerCase())
   }
 
   /**
@@ -198,21 +198,21 @@ export class TimePlugin implements PlaceholderPlugin {
    * @returns Unix timestamp in seconds
    */
   private calculateTimestamp(baseTime: DateTime, offset: number, unit: string): PlaceholderResult {
-    const unitLower = unit.toLowerCase();
+    const unitLower = unit.toLowerCase()
 
     // Create duration based on unit
-    const duration = Duration.fromObject({ [unitLower]: offset });
+    const duration = Duration.fromObject({ [unitLower]: offset })
 
     // Add duration to base time
-    const resultTime = baseTime.plus(duration);
+    const resultTime = baseTime.plus(duration)
 
     // Always return Unix timestamp in SECONDS (consistent for all units)
-    const value = Math.floor(resultTime.toSeconds());
+    const value = Math.floor(resultTime.toSeconds())
 
     return {
       value,
       type: 'number',
-    };
+    }
   }
 
   /**
@@ -231,15 +231,15 @@ export class TimePlugin implements PlaceholderPlugin {
     format: string
   ): PlaceholderResult {
     // Interpret offset as seconds for date formatting
-    const duration = Duration.fromObject({ seconds: offset });
-    const resultTime = baseTime.plus(duration);
+    const duration = Duration.fromObject({ seconds: offset })
+    const resultTime = baseTime.plus(duration)
 
-    const formatted = resultTime.toFormat(format);
+    const formatted = resultTime.toFormat(format)
 
     return {
       value: formatted,
       type: 'string',
-    };
+    }
   }
 
   /**
@@ -248,7 +248,7 @@ export class TimePlugin implements PlaceholderPlugin {
    * Will be fully implemented in Phase 8 (Time-Compare matchers)
    */
   createMatcher?(request: PluginMatcherRequest): Matcher {
-    const { action, args } = request.placeholder;
+    const { action, args } = request.placeholder
 
     return {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -256,8 +256,8 @@ export class TimePlugin implements PlaceholderPlugin {
         return {
           success: true,
           error: `Time matcher for action '${action}' with args [${args.join(', ')}] - not yet implemented`,
-        };
+        }
       },
-    };
+    }
   }
 }

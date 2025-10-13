@@ -1,5 +1,5 @@
-import type { PlaceholderPlugin } from '../plugins/PlaceholderPlugin';
-import type { Transform } from '../transforms/Transform';
+import type { PlaceholderPlugin } from '../plugins/PlaceholderPlugin'
+import type { Transform } from '../transforms/Transform'
 
 /**
  * Registry for managing placeholder plugins and transforms
@@ -8,8 +8,8 @@ import type { Transform } from '../transforms/Transform';
  * Plugins and transforms can be registered and retrieved by name.
  */
 export class PluginRegistry {
-  private plugins: Map<string, PlaceholderPlugin> = new Map();
-  private transforms: Map<string, Transform> = new Map();
+  private plugins: Map<string, PlaceholderPlugin> = new Map()
+  private transforms: Map<string, Transform> = new Map()
 
   /**
    * Register a placeholder plugin
@@ -19,9 +19,9 @@ export class PluginRegistry {
    */
   registerPlugin(plugin: PlaceholderPlugin): void {
     if (this.plugins.has(plugin.name)) {
-      throw new Error(`Plugin '${plugin.name}' is already registered`);
+      throw new Error(`Plugin '${plugin.name}' is already registered`)
     }
-    this.plugins.set(plugin.name, plugin);
+    this.plugins.set(plugin.name, plugin)
   }
 
   /**
@@ -31,7 +31,7 @@ export class PluginRegistry {
    */
   registerPlugins(plugins: PlaceholderPlugin[]): void {
     for (const plugin of plugins) {
-      this.registerPlugin(plugin);
+      this.registerPlugin(plugin)
     }
   }
 
@@ -43,12 +43,12 @@ export class PluginRegistry {
    * @throws Error if plugin not found
    */
   getPlugin(name: string): PlaceholderPlugin {
-    const plugin = this.plugins.get(name);
+    const plugin = this.plugins.get(name)
     if (!plugin) {
-      const available = Array.from(this.plugins.keys()).join(', ');
-      throw new Error(`Plugin '${name}' not found. Available plugins: ${available || 'none'}`);
+      const available = Array.from(this.plugins.keys()).join(', ')
+      throw new Error(`Plugin '${name}' not found. Available plugins: ${available || 'none'}`)
     }
-    return plugin;
+    return plugin
   }
 
   /**
@@ -58,7 +58,7 @@ export class PluginRegistry {
    * @returns True if plugin exists
    */
   hasPlugin(name: string): boolean {
-    return this.plugins.has(name);
+    return this.plugins.has(name)
   }
 
   /**
@@ -67,7 +67,7 @@ export class PluginRegistry {
    * @returns Array of plugin names
    */
   getPluginNames(): string[] {
-    return Array.from(this.plugins.keys());
+    return Array.from(this.plugins.keys())
   }
 
   /**
@@ -78,9 +78,9 @@ export class PluginRegistry {
    */
   registerTransform(transform: Transform): void {
     if (this.transforms.has(transform.name)) {
-      throw new Error(`Transform '${transform.name}' is already registered`);
+      throw new Error(`Transform '${transform.name}' is already registered`)
     }
-    this.transforms.set(transform.name, transform);
+    this.transforms.set(transform.name, transform)
   }
 
   /**
@@ -90,7 +90,7 @@ export class PluginRegistry {
    */
   registerTransforms(transforms: Transform[]): void {
     for (const transform of transforms) {
-      this.registerTransform(transform);
+      this.registerTransform(transform)
     }
   }
 
@@ -102,14 +102,12 @@ export class PluginRegistry {
    * @throws Error if transform not found
    */
   getTransform(name: string): Transform {
-    const transform = this.transforms.get(name);
+    const transform = this.transforms.get(name)
     if (!transform) {
-      const available = Array.from(this.transforms.keys()).join(', ');
-      throw new Error(
-        `Transform '${name}' not found. Available transforms: ${available || 'none'}`
-      );
+      const available = Array.from(this.transforms.keys()).join(', ')
+      throw new Error(`Transform '${name}' not found. Available transforms: ${available || 'none'}`)
     }
-    return transform;
+    return transform
   }
 
   /**
@@ -119,7 +117,7 @@ export class PluginRegistry {
    * @returns True if transform exists
    */
   hasTransform(name: string): boolean {
-    return this.transforms.has(name);
+    return this.transforms.has(name)
   }
 
   /**
@@ -128,14 +126,14 @@ export class PluginRegistry {
    * @returns Array of transform names
    */
   getTransformNames(): string[] {
-    return Array.from(this.transforms.keys());
+    return Array.from(this.transforms.keys())
   }
 
   /**
    * Clear all registered plugins and transforms
    */
   clear(): void {
-    this.plugins.clear();
-    this.transforms.clear();
+    this.plugins.clear()
+    this.transforms.clear()
   }
 }

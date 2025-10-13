@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { DateTime } from 'luxon';
-import { TimePlugin } from '@/plugins/TimePlugin';
-import { PlaceholderParser } from '@core/PlaceholderParser';
+import { TimePlugin, PlaceholderParser } from '../../src';
 
 describe('TimePlugin', () => {
   let plugin: TimePlugin;

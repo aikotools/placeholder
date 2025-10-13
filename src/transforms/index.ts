@@ -2,14 +2,14 @@
  * Built-in transforms for placeholder values
  */
 
-export type { Transform } from './Transform';
-export { ToNumberTransform } from './ToNumberTransform';
-export { ToStringTransform } from './ToStringTransform';
-export { ToBooleanTransform } from './ToBooleanTransform';
+export type { Transform } from './Transform'
+export { ToNumberTransform } from './ToNumberTransform'
+export { ToStringTransform } from './ToStringTransform'
+export { ToBooleanTransform } from './ToBooleanTransform'
 
-import { ToNumberTransform } from './ToNumberTransform';
-import { ToStringTransform } from './ToStringTransform';
-import { ToBooleanTransform } from './ToBooleanTransform';
+import { ToNumberTransform } from './ToNumberTransform'
+import { ToStringTransform } from './ToStringTransform'
+import { ToBooleanTransform } from './ToBooleanTransform'
 
 /**
  * Create a set of standard transforms
@@ -17,5 +17,5 @@ import { ToBooleanTransform } from './ToBooleanTransform';
  * @returns Array of standard transform instances
  */
 export function createStandardTransforms() {
-  return [new ToNumberTransform(), new ToStringTransform(), new ToBooleanTransform()];
+  return [new ToNumberTransform(), new ToStringTransform(), new ToBooleanTransform()]
 }

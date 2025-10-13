@@ -1,4 +1,4 @@
-import type { PlaceholderResult } from '../core/types';
+import type { PlaceholderResult } from '../core/types'
 
 /**
  * Interface for value transformations
@@ -11,7 +11,7 @@ export interface Transform {
   /**
    * Transform name (e.g., 'toNumber', 'toString', 'multiply')
    */
-  readonly name: string;
+  readonly name: string
 
   /**
    * Apply the transformation
@@ -21,5 +21,5 @@ export interface Transform {
    * @returns Transformed value
    * @throws Error if transformation fails
    */
-  apply(input: PlaceholderResult, params: string[]): PlaceholderResult;
+  apply(input: PlaceholderResult, params: string[]): PlaceholderResult
 }

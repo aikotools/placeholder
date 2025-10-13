@@ -1,5 +1,5 @@
-import type { PlaceholderResult, PluginResolveRequest, PluginMatcherRequest } from '../core/types';
-import type { Matcher } from '../compare/Matcher';
+import type { PlaceholderResult, PluginResolveRequest, PluginMatcherRequest } from '../core/types'
+import type { Matcher } from '../compare/Matcher'
 
 /**
  * Interface for placeholder plugins
@@ -13,7 +13,7 @@ export interface PlaceholderPlugin {
   /**
    * Plugin name (e.g., 'gen', 'time', 'compare')
    */
-  readonly name: string;
+  readonly name: string
 
   /**
    * Resolve a placeholder to a concrete value (Generate mode)
@@ -22,7 +22,7 @@ export interface PlaceholderPlugin {
    * @returns Resolved value with type information
    * @throws Error if placeholder cannot be resolved in generate mode
    */
-  resolve(request: PluginResolveRequest): PlaceholderResult | Promise<PlaceholderResult>;
+  resolve(request: PluginResolveRequest): PlaceholderResult | Promise<PlaceholderResult>
 
   /**
    * Create a matcher for comparison (Compare mode)
@@ -33,5 +33,5 @@ export interface PlaceholderPlugin {
    * @returns Matcher instance
    * @throws Error if plugin doesn't support compare mode
    */
-  createMatcher?(request: PluginMatcherRequest): Matcher;
+  createMatcher?(request: PluginMatcherRequest): Matcher
 }

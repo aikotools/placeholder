@@ -1,5 +1,4 @@
-import type { PlaceholderPlugin } from '@/plugins/PlaceholderPlugin';
-import type { PluginResolveRequest, PlaceholderResult } from '@core/types';
+import type { PlaceholderPlugin, PluginResolveRequest, PlaceholderResult } from '../../src';
 
 /**
  * Custom Train Plugin - Example Implementation

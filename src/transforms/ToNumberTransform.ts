@@ -1,5 +1,5 @@
-import type { PlaceholderResult } from '../core/types';
-import type { Transform } from './Transform';
+import type { PlaceholderResult } from '../core/types'
+import type { Transform } from './Transform'
 
 /**
  * Transform that converts values to numbers
@@ -13,36 +13,36 @@ import type { Transform } from './Transform';
  * - "-10" → -10
  */
 export class ToNumberTransform implements Transform {
-  readonly name = 'toNumber';
+  readonly name = 'toNumber'
 
   apply(input: PlaceholderResult, _params: string[]): PlaceholderResult {
     // If already a number, return as-is
     if (input.type === 'number') {
-      return input;
+      return input
     }
 
     // Try to convert to number
-    const value = input.value;
-    let numValue: number;
+    const value = input.value
+    let numValue: number
 
     if (typeof value === 'string') {
-      numValue = Number(value);
+      numValue = Number(value)
     } else if (typeof value === 'boolean') {
-      numValue = value ? 1 : 0;
+      numValue = value ? 1 : 0
     } else if (value === null || value === undefined) {
-      throw new Error('Cannot convert null or undefined to number');
+      throw new Error('Cannot convert null or undefined to number')
     } else {
-      numValue = Number(value);
+      numValue = Number(value)
     }
 
     // Check if conversion was successful
     if (isNaN(numValue)) {
-      throw new Error(`Cannot convert "${value}" to number`);
+      throw new Error(`Cannot convert "${value}" to number`)
     }
 
     return {
       value: numValue,
       type: 'number',
-    };
+    }
   }
 }

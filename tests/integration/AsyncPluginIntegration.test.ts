@@ -1,8 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { PlaceholderParser } from '@core/PlaceholderParser';
-import { PluginRegistry } from '@core/PluginRegistry';
-import { AsyncMockPlugin } from '@/plugins/AsyncMockPlugin';
-import { ToNumberTransform, ToStringTransform } from '@/transforms';
+import { PlaceholderParser, PluginRegistry, ToNumberTransform, ToStringTransform } from '../../src';
+import { AsyncMockPlugin } from '../helpers/AsyncMockPlugin';
 
 describe('Async Plugin Integration Tests', () => {
   let parser: PlaceholderParser;

@@ -1,10 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { JsonProcessor } from '@/formats/JsonProcessor';
-import { PlaceholderParser } from '@core/PlaceholderParser';
-import { PluginRegistry } from '@core/PluginRegistry';
-import { MockPlugin } from '@/plugins/MockPlugin';
-import { ToNumberTransform, ToStringTransform, ToBooleanTransform } from '@/transforms';
-import type { ProcessOptions } from '@core/types';
+import { JsonProcessor, PlaceholderParser, PluginRegistry, ToNumberTransform, ToStringTransform, ToBooleanTransform } from '../../src';
+import type { ProcessOptions } from '../../src';
+import { MockPlugin } from '../helpers/MockPlugin';
 
 describe('JsonProcessor', () => {
   let processor: JsonProcessor;
