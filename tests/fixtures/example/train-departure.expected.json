@@ -1,0 +1,71 @@
+{
+  "testId": "test-train-departure-001",
+  "testcase": "TC-TRAIN-DEPARTURE",
+  "train": {
+    "number": 4837,
+    "type": "RGE",
+    "operator": "DB",
+    "route": {
+      "from": "Berlin Hbf",
+      "to": "Hamburg Hbf"
+    }
+  },
+  "departure": {
+    "station": "Berlin Hbf",
+    "platform": 7,
+    "scheduledTime": 1742040000,
+    "actualTime": 1742040120,
+    "delaySeconds": 120,
+    "date": "15.03.2025",
+    "time": "12:00:00"
+  },
+  "arrival": {
+    "station": "Hamburg Hbf",
+    "estimatedTime": 1742045400,
+    "estimatedDate": "15.03.2025",
+    "estimatedTimeFormatted": "13:30:00"
+  },
+  "passengers": {
+    "count": 142,
+    "vip": true,
+    "manifest": [
+      {
+        "id": "passenger-001",
+        "seat": 15
+      },
+      {
+        "id": "passenger-002",
+        "seat": 16
+      },
+      {
+        "id": "passenger-003",
+        "seat": 17
+      }
+    ]
+  },
+  "metadata": {
+    "createdAt": "2025-03-15:12:00:00",
+    "createdTimestamp": 1742040000,
+    "version": 1,
+    "environment": "test",
+    "testRunId": "run-12345"
+  },
+  "checkpoints": [
+    {
+      "name": "Departure Check",
+      "timestamp": 1742040000,
+      "status": "passed"
+    },
+    {
+      "name": "Mid-Journey Check",
+      "timestamp": 1742042700,
+      "status": "passed"
+    },
+    {
+      "name": "Arrival Check",
+      "timestamp": 1742045400,
+      "status": "passed"
+    }
+  ],
+  "filename": "train_4837_2025-03-15_run-12345.json"
+}

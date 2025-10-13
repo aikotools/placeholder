@@ -1,0 +1,552 @@
+== API-Referenz
+
+=== PlaceholderEngine
+
+Die Haupt-Engine-Klasse, die alle Operationen orchestriert.
+
+==== Constructor
+
+[source,typescript]
+----
+constructor()
+----
+
+Erstellt eine neue PlaceholderEngine-Instanz mit:
+
+* Standard-Transforms (toNumber, toString, toBoolean)
+* Leerer Plugin-Registry
+
+**Beispiel:**
+
+[source,typescript]
+----
+import { PlaceholderEngine } from '@aikotools/placeholder';
+
+const engine = new PlaceholderEngine();
+----
+
+==== registerPlugin()
+
+Registriert ein Plugin.
+
+[source,typescript]
+----
+registerPlugin(plugin: PlaceholderPlugin): void
+----
+
+**Parameter:**
+
+* `plugin`: Das zu registrierende Plugin
+
+**Beispiel:**
+
+[source,typescript]
+----
+import { TimePlugin, GeneratorPlugin } from '@aikotools/placeholder';
+
+engine.registerPlugin(new TimePlugin());
+engine.registerPlugin(new GeneratorPlugin());
+----
+
+==== registerPlugins()
+
+Registriert mehrere Plugins auf einmal.
+
+[source,typescript]
+----
+registerPlugins(plugins: PlaceholderPlugin[]): void
+----
+
+**Parameter:**
+
+* `plugins`: Array von Plugins
+
+**Beispiel:**
+
+[source,typescript]
+----
+engine.registerPlugins([
+  new TimePlugin(),
+  new GeneratorPlugin(),
+  new CustomPlugin()
+]);
+----
+
+==== registerTransforms()
+
+Registriert Transforms.
+
+[source,typescript]
+----
+registerTransforms(transforms: Transform[]): void
+----
+
+**Parameter:**
+
+* `transforms`: Array von Transforms
+
+**Beispiel:**
+
+[source,typescript]
+----
+import { ToUpperTransform } from './transforms';
+
+engine.registerTransforms([
+  new ToUpperTransform()
+]);
+----
+
+==== processGenerate()
+
+Verarbeitet ein Template im Generate-Mode.
+
+[source,typescript]
+----
+async processGenerate(
+  input: string,
+  options: ProcessOptions
+): Promise<string>
+----
+
+**Parameter:**
+
+* `input`: Template-String (JSON oder Text)
+* `options`: Verarbeitungs-Optionen
+
+**Rückgabe:**
+
+* Promise mit verarbeitetem String
+
+**Beispiel:**
+
+[source,typescript]
+----
+const result = await engine.processGenerate(
+  JSON.stringify({ id: '{{gen:uuid:test-123}}' }),
+  {
+    format: 'json',
+    mode: 'generate',
+    context: {
+      startTimeTest: Date.now()
+    }
+  }
+);
+
+console.log(JSON.parse(result));
+// { id: "test-123" }
+----
+
+==== processCompare()
+
+Verarbeitet Templates im Compare-Mode (in Entwicklung).
+
+[source,typescript]
+----
+async processCompare(
+  actual: any,
+  expected: any,
+  options: CompareOptions
+): Promise<CompareResult>
+----
+
+NOTE: Diese Methode ist aktuell in Entwicklung (Phase 6-8).
+
+=== ProcessOptions
+
+Optionen für die Template-Verarbeitung.
+
+[source,typescript]
+----
+interface ProcessOptions {
+  // Format des Templates
+  format: 'json' | 'text';
+
+  // Verarbeitungs-Modus
+  mode: 'generate' | 'compare';
+
+  // Kontext mit Laufzeit-Daten
+  context?: Record<string, any>;
+
+  // Nur diese Plugins verwenden
+  includePlugins?: string[];
+
+  // Diese Plugins ausschließen
+  excludePlugins?: string[];
+}
+----
+
+==== format
+
+Das Format des Template-Strings.
+
+* `'json'`: JSON-Template mit AST-basierter Verarbeitung
+* `'text'`: Einfacher Text-Template
+
+==== mode
+
+Der Verarbeitungs-Modus.
+
+* `'generate'`: Erzeugt konkrete Werte
+* `'compare'`: Erzeugt Matcher (in Entwicklung)
+
+==== context
+
+Kontext-Objekt mit Laufzeit-Daten.
+
+**Standard-Felder:**
+
+* `startTimeTest`: Basis-Zeit für TimePlugin (bevorzugt)
+* `startTimeScript`: Alternative Basis-Zeit
+
+**Custom-Felder:**
+
+Sie können beliebige Felder hinzufügen, die Ihre Plugins nutzen können.
+
+**Beispiel:**
+
+[source,typescript]
+----
+{
+  context: {
+    startTimeTest: Date.now(),
+    environment: 'test',
+    baseUrl: 'http://localhost:3000',
+    testcaseId: 'TC-001'
+  }
+}
+----
+
+==== includePlugins
+
+Array von Plugin-Namen, die verwendet werden sollen. Alle anderen werden ignoriert.
+
+**Beispiel:**
+
+[source,typescript]
+----
+{
+  includePlugins: ['gen', 'time']
+}
+----
+
+==== excludePlugins
+
+Array von Plugin-Namen, die ausgeschlossen werden sollen.
+
+**Beispiel:**
+
+[source,typescript]
+----
+{
+  excludePlugins: ['compare']
+}
+----
+
+=== PlaceholderPlugin
+
+Interface für Plugins.
+
+[source,typescript]
+----
+interface PlaceholderPlugin {
+  readonly name: string;
+  resolve(request: PluginResolveRequest): PlaceholderResult;
+  createMatcher?(request: PluginMatcherRequest): Matcher;
+}
+----
+
+==== name
+
+Der Name des Plugins (module-Name in Platzhaltern).
+
+**Typ:** `string`
+
+==== resolve()
+
+Löst einen Platzhalter auf und erzeugt einen Wert.
+
+[source,typescript]
+----
+resolve(request: PluginResolveRequest): PlaceholderResult
+----
+
+**Parameter:**
+
+* `request`: Request-Objekt mit Placeholder und Context
+
+**Rückgabe:**
+
+* `PlaceholderResult` mit value und type
+
+==== createMatcher() (optional)
+
+Erzeugt einen Matcher für Compare-Mode (in Entwicklung).
+
+[source,typescript]
+----
+createMatcher?(request: PluginMatcherRequest): Matcher
+----
+
+=== PluginResolveRequest
+
+Request-Objekt für Plugin.resolve().
+
+[source,typescript]
+----
+interface PluginResolveRequest {
+  placeholder: ParsedPlaceholder;
+  context: Record<string, any>;
+  registry: PluginRegistry | null;
+}
+----
+
+==== placeholder
+
+Das geparste Platzhalter-Objekt.
+
+[source,typescript]
+----
+interface ParsedPlaceholder {
+  module: string;        // Plugin-Name (z.B. "gen")
+  action: string;        // Action-Name (z.B. "uuid")
+  args: string[];        // Argumente
+  transforms: string[];  // Transform-Namen
+  raw: string;          // Original-String
+}
+----
+
+==== context
+
+Kontext-Objekt mit Laufzeit-Daten (siehe ProcessOptions.context).
+
+==== registry
+
+Plugin-Registry (für fortgeschrittene Use Cases).
+
+=== PlaceholderResult
+
+Rückgabe-Objekt von Plugin.resolve().
+
+[source,typescript]
+----
+interface PlaceholderResult {
+  value: any;
+  type: 'string' | 'number' | 'boolean' | 'object' | 'array' | 'null';
+}
+----
+
+==== value
+
+Der erzeugte Wert.
+
+**Typ:** `any`
+
+==== type
+
+Der Typ des Werts (für Type Preservation).
+
+**Typ:** `'string' | 'number' | 'boolean' | 'object' | 'array' | 'null'`
+
+**Wichtig:** Dieser Typ wird für Type Preservation in JSON genutzt.
+
+=== Transform
+
+Interface für Transforms.
+
+[source,typescript]
+----
+interface Transform {
+  readonly name: string;
+  transform(value: any): any;
+}
+----
+
+==== name
+
+Der Name des Transforms.
+
+**Typ:** `string`
+
+==== transform()
+
+Transformiert einen Wert.
+
+[source,typescript]
+----
+transform(value: any): any
+----
+
+**Parameter:**
+
+* `value`: Der zu transformierende Wert
+
+**Rückgabe:**
+
+* Der transformierte Wert
+
+=== PlaceholderParser
+
+Parser für Platzhalter-Strings.
+
+[source,typescript]
+----
+class PlaceholderParser {
+  parse(input: string): ParsedPlaceholder
+  findPlaceholders(input: string): string[]
+}
+----
+
+==== parse()
+
+Parst einen einzelnen Platzhalter.
+
+[source,typescript]
+----
+parse(input: string): ParsedPlaceholder
+----
+
+**Parameter:**
+
+* `input`: Platzhalter-String (z.B. `"{{gen:uuid:test}}"`)
+
+**Rückgabe:**
+
+* `ParsedPlaceholder`-Objekt
+
+**Beispiel:**
+
+[source,typescript]
+----
+import { PlaceholderParser } from '@aikotools/placeholder';
+
+const parser = new PlaceholderParser();
+const parsed = parser.parse('{{gen:uuid:test-123|toUpper}}');
+
+console.log(parsed);
+// {
+//   module: 'gen',
+//   action: 'uuid',
+//   args: ['test-123'],
+//   transforms: ['toUpper'],
+//   raw: '{{gen:uuid:test-123|toUpper}}'
+// }
+----
+
+==== findPlaceholders()
+
+Findet alle Platzhalter in einem String.
+
+[source,typescript]
+----
+findPlaceholders(input: string): string[]
+----
+
+**Parameter:**
+
+* `input`: String mit potentiellen Platzhaltern
+
+**Rückgabe:**
+
+* Array von Platzhalter-Strings
+
+**Beispiel:**
+
+[source,typescript]
+----
+const parser = new PlaceholderParser();
+const placeholders = parser.findPlaceholders(
+  'ID: {{gen:uuid:test}} at {{time:calc:0:HH:mm}}'
+);
+
+console.log(placeholders);
+// ['{{gen:uuid:test}}', '{{time:calc:0:HH:mm}}']
+----
+
+=== PluginRegistry
+
+Registry für Plugins (normalerweise nicht direkt verwendet).
+
+[source,typescript]
+----
+class PluginRegistry {
+  register(plugin: PlaceholderPlugin): void
+  get(name: string): PlaceholderPlugin | undefined
+  has(name: string): boolean
+  getAll(): PlaceholderPlugin[]
+}
+----
+
+=== Processors
+
+==== JsonProcessor
+
+Verarbeitet JSON-Templates mit Type Preservation.
+
+[source,typescript]
+----
+class JsonProcessor {
+  process(
+    input: string,
+    options: ProcessOptions,
+    resolveFn: (placeholder: string) => Promise<any>
+  ): Promise<string>
+}
+----
+
+NOTE: Wird normalerweise intern von PlaceholderEngine verwendet.
+
+==== TextProcessor
+
+Verarbeitet Text-Templates.
+
+[source,typescript]
+----
+class TextProcessor {
+  process(
+    input: string,
+    options: ProcessOptions,
+    resolveFn: (placeholder: string) => Promise<any>
+  ): Promise<string>
+}
+----
+
+NOTE: Wird normalerweise intern von PlaceholderEngine verwendet.
+
+=== Standard-Exports
+
+[source,typescript]
+----
+// Haupt-Engine
+export { PlaceholderEngine } from './core/PlaceholderEngine';
+
+// Plugins
+export { TimePlugin } from './plugins/TimePlugin';
+export { GeneratorPlugin } from './plugins/GeneratorPlugin';
+
+// Transforms
+export {
+  ToNumberTransform,
+  ToStringTransform,
+  ToBooleanTransform,
+  createStandardTransforms
+} from './transforms';
+
+// Core
+export { PlaceholderParser } from './core/PlaceholderParser';
+export { PluginRegistry } from './core/PluginRegistry';
+
+// Processors
+export { JsonProcessor } from './formats/JsonProcessor';
+export { TextProcessor } from './formats/TextProcessor';
+
+// Types
+export type {
+  PlaceholderPlugin,
+  Transform,
+  Matcher,
+  PlaceholderResult,
+  ParsedPlaceholder,
+  ProcessOptions,
+  // ... weitere Types
+} from './core/types';
+----

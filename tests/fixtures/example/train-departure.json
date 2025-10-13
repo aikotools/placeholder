@@ -1,0 +1,71 @@
+{
+  "testId": "{{gen:uuid:test-train-departure-001}}",
+  "testcase": "TC-TRAIN-DEPARTURE",
+  "train": {
+    "number": "{{gen:zugnummer:4837}}",
+    "type": "RGE",
+    "operator": "DB",
+    "route": {
+      "from": "Berlin Hbf",
+      "to": "Hamburg Hbf"
+    }
+  },
+  "departure": {
+    "station": "Berlin Hbf",
+    "platform": "{{gen:number:7}}",
+    "scheduledTime": "{{time:calc:0:seconds}}",
+    "actualTime": "{{time:calc:120:seconds}}",
+    "delaySeconds": "{{gen:number:120}}",
+    "date": "{{time:calc:0:dd.MM.yyyy}}",
+    "time": "{{time:calc:0:HH\\:mm\\:ss}}"
+  },
+  "arrival": {
+    "station": "Hamburg Hbf",
+    "estimatedTime": "{{time:calc:5400:seconds}}",
+    "estimatedDate": "{{time:calc:5400:dd.MM.yyyy}}",
+    "estimatedTimeFormatted": "{{time:calc:5400:HH\\:mm\\:ss}}"
+  },
+  "passengers": {
+    "count": "{{gen:number:142}}",
+    "vip": "{{gen:boolean:true}}",
+    "manifest": [
+      {
+        "id": "{{gen:uuid:passenger-001}}",
+        "seat": "{{gen:number:15}}"
+      },
+      {
+        "id": "{{gen:uuid:passenger-002}}",
+        "seat": "{{gen:number:16}}"
+      },
+      {
+        "id": "{{gen:uuid:passenger-003}}",
+        "seat": "{{gen:number:17}}"
+      }
+    ]
+  },
+  "metadata": {
+    "createdAt": "{{time:calc:0:yyyy-MM-dd\\:HH\\:mm\\:ss}}",
+    "createdTimestamp": "{{time:calc:0:seconds}}",
+    "version": "{{gen:number:1}}",
+    "environment": "test",
+    "testRunId": "{{gen:uuid:run-12345}}"
+  },
+  "checkpoints": [
+    {
+      "name": "Departure Check",
+      "timestamp": "{{time:calc:0:seconds}}",
+      "status": "{{gen:string:passed}}"
+    },
+    {
+      "name": "Mid-Journey Check",
+      "timestamp": "{{time:calc:2700:seconds}}",
+      "status": "{{gen:string:passed}}"
+    },
+    {
+      "name": "Arrival Check",
+      "timestamp": "{{time:calc:5400:seconds}}",
+      "status": "{{gen:string:passed}}"
+    }
+  ],
+  "filename": "train_{{gen:zugnummer:4837}}_{{time:calc:0:yyyy-MM-dd}}_{{gen:uuid:run-12345}}.json"
+}

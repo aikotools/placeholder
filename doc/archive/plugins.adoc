@@ -1,0 +1,444 @@
+== Plugins
+
+=== Übersicht
+
+Plugins erweitern das System um spezifische Funktionalität. Jedes Plugin hat einen Namen (module) und bietet verschiedene Actions.
+
+=== TimePlugin
+
+Das TimePlugin bietet Funktionen für Zeit-Berechnungen und -Formatierung.
+
+==== Module-Name
+
+`time`
+
+==== Actions
+
+===== calc - Zeit berechnen
+
+Berechnet einen Zeitpunkt relativ zu einer Basis-Zeit.
+
+**Syntax:**
+[source]
+----
+{{time:calc:offset:unit|format}}
+----
+
+**Parameter:**
+
+* `offset`: Zeitverschiebung (z.B. `300`, `-60`, `0`)
+* `unit|format`: Entweder Zeiteinheit ODER Datums-Format
+
+**Zeiteinheiten:**
+
+* `milliseconds`
+* `seconds`
+* `minutes`
+* `hours`
+* `days`
+* `weeks`
+* `months`
+* `years`
+
+**Beispiele mit Zeiteinheiten:**
+
+[source]
+----
+{{time:calc:300:seconds}}        → 1710508845 (Unix timestamp in seconds)
+{{time:calc:-60:seconds}}         → 1710508485 (60 Sekunden vor Basis-Zeit)
+{{time:calc:5:minutes}}           → 1710508845000 (Unix timestamp in milliseconds)
+{{time:calc:2:hours}}             → 1710515745000
+{{time:calc:7:days}}              → 1711113145000
+----
+
+**Beispiele mit Datum-Formatierung:**
+
+[source]
+----
+{{time:calc:0:dd.MM.yyyy}}        → "15.03.2025"
+{{time:calc:3600:dd.MM.yyyy HH}}  → "15.03.2025 13" (1 Stunde später)
+{{time:calc:-86400:yyyy-MM-dd}}   → "2025-03-14" (1 Tag früher)
+{{time:calc:0:HH}}                → "12"
+----
+
+**Datums-Formate:**
+
+Das Plugin nutzt Luxon's `toFormat()`. Häufige Format-Tokens:
+
+[cols="1,2,1"]
+|===
+|Token |Beschreibung |Beispiel
+
+|`yyyy`
+|4-stelliges Jahr
+|2025
+
+|`yy`
+|2-stelliges Jahr
+|25
+
+|`MM`
+|Monat (2-stellig)
+|03
+
+|`M`
+|Monat
+|3
+
+|`dd`
+|Tag (2-stellig)
+|15
+
+|`d`
+|Tag
+|15
+
+|`HH`
+|Stunde (24h, 2-stellig)
+|14
+
+|`H`
+|Stunde (24h)
+|14
+
+|`mm`
+|Minute (2-stellig)
+|30
+
+|`m`
+|Minute
+|30
+
+|`ss`
+|Sekunde (2-stellig)
+|45
+
+|`s`
+|Sekunde
+|45
+|===
+
+**Wichtig**: Format-Strings mit `:` funktionieren nicht, da `:` als Argument-Trenner genutzt wird. Nutzen Sie Leerzeichen statt `:`:
+
+[source]
+----
+// ❌ Funktioniert NICHT
+{{time:calc:0:HH:mm:ss}}
+
+// ✅ Funktioniert
+{{time:calc:0:HH mm ss}}
+----
+
+===== format - Timestamp formatieren
+
+Formatiert einen Unix-Timestamp.
+
+**Syntax:**
+[source]
+----
+{{time:format:timestamp:format}}
+----
+
+**Parameter:**
+
+* `timestamp`: Unix-Timestamp (Sekunden < 10 Mrd., sonst Millisekunden)
+* `format`: Datums-Format-String
+
+**Beispiele:**
+
+[source]
+----
+{{time:format:1710508245:dd.MM.yyyy}}           → "15.03.2024"
+{{time:format:1710508245000:dd.MM.yyyy HH}}     → "15.03.2024 13"
+{{time:format:1710508245:yyyy-MM-dd}}           → "2024-03-15"
+----
+
+==== Basis-Zeit
+
+TimePlugin nutzt eine Basis-Zeit für `calc` aus dem Context (Priorität):
+
+1. `context.startTimeTest` (höchste)
+2. `context.startTimeScript`
+3. Aktuelle Zeit UTC
+
+**Beispiel:**
+
+[source,typescript]
+----
+const result = await engine.processGenerate(template, {
+  format: 'json',
+  mode: 'generate',
+  context: {
+    startTimeTest: new Date('2025-03-15T12:00:00Z').getTime()
+  }
+});
+----
+
+==== UTC-Zeitzone
+
+WICHTIG: Alle Zeit-Operationen erfolgen in UTC, um konsistente Ergebnisse in verschiedenen Umgebungen zu garantieren.
+
+==== Rückgabe-Typen
+
+[cols="2,2"]
+|===
+|Action + Params |Rückgabe-Typ
+
+|`calc` mit Zeiteinheit `seconds`
+|Number (Unix seconds)
+
+|`calc` mit Zeiteinheit (andere)
+|Number (Unix milliseconds)
+
+|`calc` mit Datums-Format
+|String
+
+|`format`
+|String
+|===
+
+=== GeneratorPlugin
+
+Das GeneratorPlugin erzeugt Testdaten - entweder mit vorgegebenen Werten (vorhersagbar) oder zufällig.
+
+==== Module-Name
+
+`gen`
+
+==== Actions
+
+===== uuid - UUID/ID generieren
+
+Erzeugt oder nutzt eine UUID/ID.
+
+**Syntax:**
+[source]
+----
+{{gen:uuid}}              // Zufällige UUID
+{{gen:uuid:my-id-123}}    // Feste ID
+----
+
+**Beispiele:**
+
+[source]
+----
+{{gen:uuid}}                                    → "a3f2e1d4-..." (zufällig)
+{{gen:uuid:test-123}}                          → "test-123"
+{{gen:uuid:12345678-1234-1234-1234-123456789012}} → "12345678-1234-1234-1234-123456789012"
+----
+
+**Wichtig**: Das Plugin validiert NICHT das UUID-Format. Sie können beliebige Strings als IDs verwenden, was für Testdaten sehr praktisch ist.
+
+**Rückgabe-Typ**: String
+
+===== number / zugnummer - Zahl generieren
+
+Erzeugt oder nutzt eine Zahl. `zugnummer` ist ein Alias für `number`.
+
+**Syntax:**
+[source]
+----
+{{gen:number}}            // Zufällige Zahl (0-9999)
+{{gen:number:42}}         // Feste Zahl
+{{gen:zugnummer:4837}}    // Alias für number
+----
+
+**Beispiele:**
+
+[source]
+----
+{{gen:number}}          → 7342 (zufällig)
+{{gen:number:42}}       → 42
+{{gen:zugnummer:4837}}  → 4837
+{{gen:number:-100}}     → -100
+{{gen:number:3.14}}     → 3.14
+----
+
+**Rückgabe-Typ**: Number
+
+===== string - String generieren
+
+Erzeugt oder nutzt einen String.
+
+**Syntax:**
+[source]
+----
+{{gen:string}}            // Zufälliger String (8 Zeichen)
+{{gen:string:hello}}      // Fester String
+----
+
+**Beispiele:**
+
+[source]
+----
+{{gen:string}}          → "aB3xY9pQ" (zufällig)
+{{gen:string:hello}}    → "hello"
+{{gen:string:test123}}  → "test123"
+----
+
+**Rückgabe-Typ**: String
+
+===== boolean - Boolean generieren
+
+Erzeugt oder nutzt einen Boolean.
+
+**Syntax:**
+[source]
+----
+{{gen:boolean}}           // Zufälliger Boolean
+{{gen:boolean:true}}      // Fester Boolean
+----
+
+**Akzeptierte Werte für true:**
+
+* `true`, `1`, `yes`
+
+**Akzeptierte Werte für false:**
+
+* `false`, `0`, `no`
+
+**Beispiele:**
+
+[source]
+----
+{{gen:boolean}}           → true (zufällig)
+{{gen:boolean:true}}      → true
+{{gen:boolean:false}}     → false
+{{gen:boolean:1}}         → true
+{{gen:boolean:0}}         → false
+{{gen:boolean:yes}}       → true
+----
+
+**Rückgabe-Typ**: Boolean
+
+=== Eigenes Plugin erstellen
+
+Sie können eigene Plugins erstellen, indem Sie das `PlaceholderPlugin` Interface implementieren.
+
+==== Plugin-Interface
+
+[source,typescript]
+----
+interface PlaceholderPlugin {
+  // Name des Plugins (module)
+  readonly name: string;
+
+  // Hauptmethode: Placeholder auflösen
+  resolve(request: PluginResolveRequest): PlaceholderResult;
+
+  // Optional: Matcher für Compare-Mode erstellen
+  createMatcher?(request: PluginMatcherRequest): Matcher;
+}
+----
+
+==== Beispiel: Custom Plugin
+
+[source,typescript]
+----
+import { PlaceholderPlugin, PluginResolveRequest, PlaceholderResult } from '@aikotools/placeholder';
+
+export class MathPlugin implements PlaceholderPlugin {
+  readonly name = 'math';
+
+  resolve(request: PluginResolveRequest): PlaceholderResult {
+    const { action, args } = request.placeholder;
+
+    switch (action) {
+      case 'add':
+        return this.handleAdd(args);
+
+      case 'multiply':
+        return this.handleMultiply(args);
+
+      default:
+        throw new Error(`Math plugin: unknown action '${action}'`);
+    }
+  }
+
+  private handleAdd(args: string[]): PlaceholderResult {
+    if (args.length < 2) {
+      throw new Error('Math add: requires 2 arguments');
+    }
+
+    const a = parseFloat(args[0]);
+    const b = parseFloat(args[1]);
+
+    if (isNaN(a) || isNaN(b)) {
+      throw new Error('Math add: invalid numbers');
+    }
+
+    return {
+      value: a + b,
+      type: 'number'
+    };
+  }
+
+  private handleMultiply(args: string[]): PlaceholderResult {
+    if (args.length < 2) {
+      throw new Error('Math multiply: requires 2 arguments');
+    }
+
+    const a = parseFloat(args[0]);
+    const b = parseFloat(args[1]);
+
+    if (isNaN(a) || isNaN(b)) {
+      throw new Error('Math multiply: invalid numbers');
+    }
+
+    return {
+      value: a * b,
+      type: 'number'
+    };
+  }
+}
+----
+
+==== Plugin registrieren
+
+[source,typescript]
+----
+import { PlaceholderEngine } from '@aikotools/placeholder';
+import { MathPlugin } from './MathPlugin';
+
+const engine = new PlaceholderEngine();
+engine.registerPlugin(new MathPlugin());
+
+// Verwendung
+"{{math:add:5:3}}"       → 8
+"{{math:multiply:4:7}}"  → 28
+----
+
+==== PlaceholderResult
+
+Jedes Plugin muss ein `PlaceholderResult` zurückgeben:
+
+[source,typescript]
+----
+interface PlaceholderResult {
+  // Der Wert
+  value: any;
+
+  // Der Typ (für Type Preservation)
+  type: 'string' | 'number' | 'boolean' | 'object' | 'array' | 'null';
+}
+----
+
+**Wichtig**: Der `type` wird für Type Preservation in JSON genutzt.
+
+==== Context nutzen
+
+Ihr Plugin kann auf den Context zugreifen:
+
+[source,typescript]
+----
+resolve(request: PluginResolveRequest): PlaceholderResult {
+  const { action, args } = request.placeholder;
+  const { context } = request;
+
+  // Context-Werte nutzen
+  const env = context.environment || 'test';
+  const baseUrl = context.baseUrl || 'http://localhost';
+
+  // ...
+}
+----

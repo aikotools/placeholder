@@ -1,0 +1,30 @@
+{
+  "scheduleId": "schedule-001",
+  "train": {
+    "designation": "ICE 723",
+    "type": "ICE",
+    "operator": "DB Fernverkehr"
+  },
+  "route": {
+    "departure": {
+      "station": "Berlin Hbf",
+      "platform": 7,
+      "scheduledTime": "12:00",
+      "actualTime": "12:05",
+      "delay": 5
+    },
+    "arrival": {
+      "station": "München Hbf",
+      "platform": 3,
+      "scheduledTime": "18:00",
+      "estimatedTime": "18:05",
+      "delay": 5
+    }
+  },
+  "metadata": {
+    "createdAt": 1742040000,
+    "validFrom": "2025-03-15",
+    "validUntil": "2025-03-22",
+    "version": 1
+  }
+}

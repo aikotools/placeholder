@@ -1,0 +1,61 @@
+{
+  "report": {
+    "id": "{{gen:uuid:report-2025-001}}",
+    "title": "E2E Test Report - Train System",
+    "generated": "{{time:calc:0:yyyy-MM-dd\\:HH\\:mm\\:ss}}",
+    "generatedTimestamp": "{{time:calc:0:seconds}}"
+  },
+  "testRun": {
+    "runId": "{{gen:uuid:testrun-001}}",
+    "startTime": "{{time:calc:0:seconds}}",
+    "endTime": "{{time:calc:3600:seconds}}",
+    "durationSeconds": "{{gen:number:3600}}",
+    "startDate": "{{time:calc:0:dd.MM.yyyy}}",
+    "startTimeFormatted": "{{time:calc:0:HH\\:mm\\:ss}}",
+    "endTimeFormatted": "{{time:calc:3600:HH\\:mm\\:ss}}"
+  },
+  "statistics": {
+    "totalTests": "{{gen:number:150}}",
+    "passed": "{{gen:number:145}}",
+    "failed": "{{gen:number:5}}",
+    "skipped": "{{gen:number:0}}",
+    "successRate": "{{gen:string:96.7|toNumber}}",
+    "enabled": "{{gen:boolean:true}}"
+  },
+  "tests": [
+    {
+      "id": "{{gen:uuid:test-001}}",
+      "name": "Train Departure Test",
+      "status": "PASSED",
+      "duration": "{{gen:number:120}}",
+      "startTime": "{{time:calc:0:seconds}}",
+      "endTime": "{{time:calc:120:seconds}}"
+    },
+    {
+      "id": "{{gen:uuid:test-002}}",
+      "name": "Train Arrival Test",
+      "status": "PASSED",
+      "duration": "{{gen:number:180}}",
+      "startTime": "{{time:calc:120:seconds}}",
+      "endTime": "{{time:calc:300:seconds}}"
+    },
+    {
+      "id": "{{gen:uuid:test-003}}",
+      "name": "Platform Assignment Test",
+      "status": "FAILED",
+      "duration": "{{gen:number:45}}",
+      "startTime": "{{time:calc:300:seconds}}",
+      "endTime": "{{time:calc:345:seconds}}"
+    }
+  ],
+  "environment": {
+    "name": "{{gen:string:test}}",
+    "version": "{{gen:string:1.0.0}}",
+    "build": "{{gen:number:42}}"
+  },
+  "artifacts": {
+    "logFile": "test-run_{{time:calc:0:yyyy-MM-dd}}_{{gen:uuid:testrun-001}}.log",
+    "screenshotDir": "screenshots/run_{{time:calc:0:yyyyMMdd}}_{{gen:string:001}}",
+    "reportFile": "report_{{time:calc:0:yyyy-MM-dd\\:HH-mm-ss}}.html"
+  }
+}

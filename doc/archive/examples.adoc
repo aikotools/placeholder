@@ -1,0 +1,627 @@
+== Beispiele
+
+=== Einfache Beispiele
+
+==== UUIDs für Tests
+
+[source,typescript]
+----
+const template = JSON.stringify({
+  id: '{{gen:uuid:test-001}}',
+  correlationId: '{{gen:uuid:corr-123}}'
+});
+
+const result = await engine.processGenerate(template, {
+  format: 'json',
+  mode: 'generate'
+});
+
+console.log(JSON.parse(result));
+// {
+//   id: "test-001",
+//   correlationId: "corr-123"
+// }
+----
+
+==== Timestamps generieren
+
+[source,typescript]
+----
+import { DateTime } from 'luxon';
+
+const baseTime = DateTime.fromISO('2025-03-15T12:00:00Z');
+
+const template = JSON.stringify({
+  startTime: '{{time:calc:0:seconds}}',
+  endTime: '{{time:calc:300:seconds}}',
+  checkTime: '{{time:calc:150:seconds}}'
+});
+
+const result = await engine.processGenerate(template, {
+  format: 'json',
+  mode: 'generate',
+  context: {
+    startTimeTest: baseTime.toMillis()
+  }
+});
+
+console.log(JSON.parse(result));
+// {
+//   startTime: 1710504000,
+//   endTime: 1710504300,
+//   checkTime: 1710504150
+// }
+----
+
+==== Datum formatieren
+
+[source,typescript]
+----
+const template = JSON.stringify({
+  date: '{{time:calc:0:dd.MM.yyyy}}',
+  time: '{{time:calc:0:HH}}',
+  datetime: '{{time:calc:0:yyyy-MM-dd HH}}'
+});
+
+const result = await engine.processGenerate(template, {
+  format: 'json',
+  mode: 'generate',
+  context: {
+    startTimeTest: new Date('2025-03-15T14:30:00Z').getTime()
+  }
+});
+
+console.log(JSON.parse(result));
+// {
+//   date: "15.03.2025",
+//   time: "14",
+//   datetime: "2025-03-15 14"
+// }
+----
+
+=== Komplexe Beispiele
+
+==== E2E-Test: Zug-Abfahrt
+
+[source,typescript]
+----
+import { PlaceholderEngine, TimePlugin, GeneratorPlugin } from '@aikotools/placeholder';
+import { DateTime } from 'luxon';
+
+// Setup
+const engine = new PlaceholderEngine();
+engine.registerPlugins([
+  new TimePlugin(),
+  new GeneratorPlugin()
+]);
+
+// Test-Basis-Zeit: 15.03.2025 12:00 UTC
+const testStartTime = DateTime.fromISO('2025-03-15T12:00:00Z');
+
+// Expected-Template für Zug-Abfahrt
+const expected = JSON.stringify({
+  testId: '{{gen:uuid:test-train-departure-001}}',
+  train: {
+    number: '{{gen:zugnummer:4837}}',
+    type: 'RGE',
+    operator: 'DB'
+  },
+  departure: {
+    station: 'Berlin Hbf',
+    platform: '7',
+    scheduledTime: '{{time:calc:0:seconds}}',
+    actualTime: '{{time:calc:120:seconds}}',  // 2 Min Verspätung
+    date: '{{time:calc:0:dd.MM.yyyy}}'
+  },
+  destination: {
+    station: 'Hamburg Hbf',
+    arrivalTime: '{{time:calc:5400:seconds}}'  // 90 Min Fahrt
+  },
+  metadata: {
+    created: '{{time:calc:0:yyyy-MM-dd HH}}',
+    version: '{{gen:number:1}}'
+  }
+});
+
+// Verarbeiten
+const result = await engine.processGenerate(expected, {
+  format: 'json',
+  mode: 'generate',
+  context: {
+    startTimeTest: testStartTime.toMillis()
+  }
+});
+
+const data = JSON.parse(result);
+
+console.log(data);
+// {
+//   testId: "test-train-departure-001",
+//   train: {
+//     number: 4837,
+//     type: "RGE",
+//     operator: "DB"
+//   },
+//   departure: {
+//     station: "Berlin Hbf",
+//     platform: "7",
+//     scheduledTime: 1710504000,
+//     actualTime: 1710504120,
+//     date: "15.03.2025"
+//   },
+//   destination: {
+//     station: "Hamburg Hbf",
+//     arrivalTime: 1710509400
+//   },
+//   metadata: {
+//     created: "2025-03-15 12",
+//     version: 1
+//   }
+// }
+
+// Typ-Überprüfungen
+console.assert(typeof data.train.number === 'number');
+console.assert(typeof data.departure.scheduledTime === 'number');
+console.assert(typeof data.metadata.version === 'number');
+console.assert(typeof data.departure.date === 'string');
+----
+
+==== String-Interpolation: Dateinamen
+
+[source,typescript]
+----
+const template = JSON.stringify({
+  filename: '{{gen:zugnummer:4837}}_RGE_{{time:calc:0:dd.MM.yyyy}}_{{gen:uuid:run123}}_Start'
+});
+
+const result = await engine.processGenerate(template, {
+  format: 'json',
+  mode: 'generate',
+  context: {
+    startTimeTest: new Date('2025-03-15T12:00:00Z').getTime()
+  }
+});
+
+console.log(JSON.parse(result));
+// {
+//   filename: "4837_RGE_15.03.2025_run123_Start"
+// }
+----
+
+==== Multi-Phase Processing
+
+[source,typescript]
+----
+const template = JSON.stringify({
+  id: '{{gen:uuid:test-123}}',
+  zugnummer: '{{gen:zugnummer:4837}}',
+  timestamp: '{{time:calc:0:seconds}}',
+  static: 'unchanged'
+});
+
+// Phase 1: Nur Gen-Plugins
+const afterGen = await engine.processGenerate(template, {
+  format: 'json',
+  mode: 'generate',
+  includePlugins: ['gen']
+});
+
+console.log('After Gen:', JSON.parse(afterGen));
+// {
+//   id: "test-123",
+//   zugnummer: 4837,
+//   timestamp: "{{time:calc:0:seconds}}",
+//   static: "unchanged"
+// }
+
+// Phase 2: Nur Time-Plugins
+const afterTime = await engine.processGenerate(afterGen, {
+  format: 'json',
+  mode: 'generate',
+  includePlugins: ['time'],
+  context: {
+    startTimeTest: Date.now()
+  }
+});
+
+console.log('After Time:', JSON.parse(afterTime));
+// {
+//   id: "test-123",
+//   zugnummer: 4837,
+//   timestamp: 1710504000,
+//   static: "unchanged"
+// }
+----
+
+==== Verschachtelte JSON-Strukturen
+
+[source,typescript]
+----
+const template = JSON.stringify({
+  journey: {
+    id: '{{gen:uuid:journey-001}}',
+    train: {
+      number: '{{gen:zugnummer:4837}}',
+      type: 'RGE',
+      sections: [
+        {
+          from: 'Berlin Hbf',
+          to: 'Hamburg Hbf',
+          departure: '{{time:calc:0:seconds}}',
+          arrival: '{{time:calc:5400:seconds}}'
+        },
+        {
+          from: 'Hamburg Hbf',
+          to: 'Bremen Hbf',
+          departure: '{{time:calc:5700:seconds}}',
+          arrival: '{{time:calc:8100:seconds}}'
+        }
+      ]
+    },
+    passengers: {
+      count: '{{gen:number:42}}',
+      manifest: [
+        { id: '{{gen:uuid:p1}}', seat: '{{gen:number:15}}' },
+        { id: '{{gen:uuid:p2}}', seat: '{{gen:number:16}}' }
+      ]
+    }
+  }
+});
+
+const result = await engine.processGenerate(template, {
+  format: 'json',
+  mode: 'generate',
+  context: {
+    startTimeTest: new Date('2025-03-15T12:00:00Z').getTime()
+  }
+});
+
+const data = JSON.parse(result);
+console.log(data);
+// Vollständig verschachtelte Struktur mit Type Preservation
+----
+
+==== Arrays mit Platzhaltern
+
+[source,typescript]
+----
+const template = JSON.stringify({
+  timestamps: [
+    '{{time:calc:0:seconds}}',
+    '{{time:calc:60:seconds}}',
+    '{{time:calc:120:seconds}}'
+  ],
+  ids: [
+    '{{gen:number:1}}',
+    '{{gen:number:2}}',
+    '{{gen:number:3}}'
+  ],
+  status: [
+    '{{gen:boolean:true}}',
+    '{{gen:boolean:false}}',
+    '{{gen:boolean:true}}'
+  ]
+});
+
+const result = await engine.processGenerate(template, {
+  format: 'json',
+  mode: 'generate',
+  context: {
+    startTimeTest: Date.now()
+  }
+});
+
+const data = JSON.parse(result);
+
+// Alle Timestamps sind Numbers
+console.assert(data.timestamps.every(t => typeof t === 'number'));
+
+// Alle IDs sind Numbers
+console.assert(data.ids.every(id => typeof id === 'number'));
+
+// Alle Status sind Booleans
+console.assert(data.status.every(s => typeof s === 'boolean'));
+----
+
+=== Transforms-Beispiele
+
+==== Type-Konvertierung
+
+[source,typescript]
+----
+const template = JSON.stringify({
+  // String → Number
+  count: '{{gen:string:42|toNumber}}',
+
+  // Number → String
+  id: '{{gen:number:12345|toString}}',
+
+  // String → Boolean
+  active: '{{gen:string:true|toBoolean}}',
+
+  // Verschachtelt mit Transform
+  timestamp: '{{gen:string:1710504000|toNumber}}'
+});
+
+const result = await engine.processGenerate(template, {
+  format: 'json',
+  mode: 'generate'
+});
+
+console.log(JSON.parse(result));
+// {
+//   count: 42,
+//   id: "12345",
+//   active: true,
+//   timestamp: 1710504000
+// }
+----
+
+=== Text-Template Beispiele
+
+==== Einfache Text-Templates
+
+[source,typescript]
+----
+const template = 'Train {{gen:zugnummer:4837}} departs at {{time:calc:0:HH}} from platform 7';
+
+const result = await engine.processGenerate(template, {
+  format: 'text',
+  mode: 'generate',
+  context: {
+    startTimeTest: new Date('2025-03-15T14:30:00Z').getTime()
+  }
+});
+
+console.log(result);
+// "Train 4837 departs at 14 from platform 7"
+----
+
+==== Multi-Line Text
+
+[source,typescript]
+----
+const template = `
+Test Report
+===========
+Test ID: {{gen:uuid:test-001}}
+Train: {{gen:zugnummer:4837}}
+Date: {{time:calc:0:dd.MM.yyyy}}
+Time: {{time:calc:0:HH}}
+Status: PASSED
+`.trim();
+
+const result = await engine.processGenerate(template, {
+  format: 'text',
+  mode: 'generate',
+  context: {
+    startTimeTest: new Date('2025-03-15T12:00:00Z').getTime()
+  }
+});
+
+console.log(result);
+// Test Report
+// ===========
+// Test ID: test-001
+// Train: 4837
+// Date: 15.03.2025
+// Time: 12
+// Status: PASSED
+----
+
+=== Wiederverwendbare Template-Funktionen
+
+==== Template-Helfer erstellen
+
+[source,typescript]
+----
+import { PlaceholderEngine, TimePlugin, GeneratorPlugin } from '@aikotools/placeholder';
+import * as fs from 'fs/promises';
+
+class TemplateHelper {
+  private engine: PlaceholderEngine;
+
+  constructor() {
+    this.engine = new PlaceholderEngine();
+    this.engine.registerPlugins([
+      new TimePlugin(),
+      new GeneratorPlugin()
+    ]);
+  }
+
+  async loadAndProcess(
+    templatePath: string,
+    context: Record<string, any>
+  ): Promise<any> {
+    const template = await fs.readFile(templatePath, 'utf-8');
+
+    const result = await this.engine.processGenerate(template, {
+      format: 'json',
+      mode: 'generate',
+      context
+    });
+
+    return JSON.parse(result);
+  }
+
+  async createExpectedData(
+    testId: string,
+    zugnummer: number,
+    testStartTime: number
+  ): Promise<any> {
+    const template = JSON.stringify({
+      testId: `{{gen:uuid:${testId}}}`,
+      zugnummer: `{{gen:zugnummer:${zugnummer}}}`,
+      startTime: '{{time:calc:0:seconds}}',
+      endTime: '{{time:calc:300:seconds}}',
+      date: '{{time:calc:0:dd.MM.yyyy}}'
+    });
+
+    const result = await this.engine.processGenerate(template, {
+      format: 'json',
+      mode: 'generate',
+      context: {
+        startTimeTest: testStartTime
+      }
+    });
+
+    return JSON.parse(result);
+  }
+}
+
+// Verwendung
+const helper = new TemplateHelper();
+
+const expected = await helper.createExpectedData(
+  'test-001',
+  4837,
+  Date.now()
+);
+
+console.log(expected);
+----
+
+==== Vitest Integration
+
+[source,typescript]
+----
+import { describe, it, expect, beforeEach } from 'vitest';
+import { PlaceholderEngine, TimePlugin, GeneratorPlugin } from '@aikotools/placeholder';
+import { DateTime } from 'luxon';
+
+describe('Train Journey Tests', () => {
+  let engine: PlaceholderEngine;
+  let testStartTime: DateTime;
+
+  beforeEach(() => {
+    engine = new PlaceholderEngine();
+    engine.registerPlugins([
+      new TimePlugin(),
+      new GeneratorPlugin()
+    ]);
+
+    testStartTime = DateTime.fromISO('2025-03-15T12:00:00Z');
+  });
+
+  it('should generate expected train departure data', async () => {
+    const template = JSON.stringify({
+      testId: '{{gen:uuid:test-departure}}',
+      train: {
+        number: '{{gen:zugnummer:4837}}',
+        type: 'RGE'
+      },
+      departure: {
+        time: '{{time:calc:0:seconds}}',
+        date: '{{time:calc:0:dd.MM.yyyy}}'
+      }
+    });
+
+    const result = await engine.processGenerate(template, {
+      format: 'json',
+      mode: 'generate',
+      context: {
+        startTimeTest: testStartTime.toMillis()
+      }
+    });
+
+    const data = JSON.parse(result);
+
+    expect(data.testId).toBe('test-departure');
+    expect(data.train.number).toBe(4837);
+    expect(typeof data.train.number).toBe('number');
+    expect(data.departure.time).toBe(testStartTime.toSeconds());
+    expect(data.departure.date).toBe('15.03.2025');
+  });
+
+  it('should handle multi-phase processing', async () => {
+    const template = JSON.stringify({
+      id: '{{gen:uuid:test-123}}',
+      timestamp: '{{time:calc:0:seconds}}'
+    });
+
+    // Phase 1: Gen
+    const afterGen = await engine.processGenerate(template, {
+      format: 'json',
+      mode: 'generate',
+      includePlugins: ['gen']
+    });
+
+    const genData = JSON.parse(afterGen);
+    expect(genData.id).toBe('test-123');
+    expect(genData.timestamp).toBe('{{time:calc:0:seconds}}');
+
+    // Phase 2: Time
+    const afterTime = await engine.processGenerate(afterGen, {
+      format: 'json',
+      mode: 'generate',
+      includePlugins: ['time'],
+      context: {
+        startTimeTest: testStartTime.toMillis()
+      }
+    });
+
+    const timeData = JSON.parse(afterTime);
+    expect(timeData.id).toBe('test-123');
+    expect(timeData.timestamp).toBe(testStartTime.toSeconds());
+  });
+});
+----
+
+=== Fehlerbehandlung
+
+==== Ungültiger Platzhalter
+
+[source,typescript]
+----
+const template = JSON.stringify({
+  value: '{{unknown:action:arg}}'
+});
+
+try {
+  await engine.processGenerate(template, {
+    format: 'json',
+    mode: 'generate'
+  });
+} catch (error) {
+  console.error(error.message);
+  // "Plugin 'unknown' not found. Available plugins: gen, time"
+}
+----
+
+==== Ungültige Action
+
+[source,typescript]
+----
+const template = JSON.stringify({
+  value: '{{gen:invalid:arg}}'
+});
+
+try {
+  await engine.processGenerate(template, {
+    format: 'json',
+    mode: 'generate'
+  });
+} catch (error) {
+  console.error(error.message);
+  // "Generator plugin: unknown action 'invalid'. Available: uuid, number, zugnummer, string, boolean"
+}
+----
+
+==== Fehlende Argumente
+
+[source,typescript]
+----
+const template = JSON.stringify({
+  value: '{{time:calc:300}}'
+});
+
+try {
+  await engine.processGenerate(template, {
+    format: 'json',
+    mode: 'generate'
+  });
+} catch (error) {
+  console.error(error.message);
+  // "Time plugin calc: requires 2 arguments (offset, unit/format)"
+}
+----

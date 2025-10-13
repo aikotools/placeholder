@@ -1,0 +1,400 @@
+== Kernkonzepte
+
+=== Type Preservation
+
+Eines der wichtigsten Features ist die automatische Typ-Erhaltung in JSON.
+
+==== Das Problem
+
+Bei herkömmlichen Template-Systemen werden alle Werte zu Strings:
+
+[source,json]
+----
+// Template
+{
+  "zugnummer": "{{gen:zugnummer:4837}}"
+}
+
+// Falsches Ergebnis (alle Strings!)
+{
+  "zugnummer": "4837"  // ❌ String statt Number
+}
+----
+
+==== Die Lösung
+
+@aikotools/placeholder nutzt AST-basierte JSON-Verarbeitung:
+
+[source,json]
+----
+// Template
+{
+  "zugnummer": "{{gen:zugnummer:4837}}"
+}
+
+// Korrektes Ergebnis
+{
+  "zugnummer": 4837  // ✅ Number
+}
+----
+
+==== Regeln für Type Preservation
+
+[cols="2,3,2"]
+|===
+|Template |Ergebnis |Typ
+
+|`"{{gen:number:42}}"`
+|`42`
+|number
+
+|`"{{gen:string:hello}}"`
+|`"hello"`
+|string
+
+|`"{{gen:boolean:true}}"`
+|`true`
+|boolean
+
+|`"{{time:calc:0:seconds}}"`
+|`1710508545`
+|number
+
+|`"{{time:calc:0:dd.MM.yyyy}}"`
+|`"15.03.2025"`
+|string
+
+|`"Value: {{gen:number:42}}"`
+|`"Value: 42"`
+|string (Interpolation)
+
+|`"{{gen:string:42\|toNumber}}"`
+|`42`
+|number (Transform)
+|===
+
+**Wichtig**: Wenn ein Platzhalter **alleine** in einem String steht, wird der Typ des Plugin-Ergebnisses übernommen. Bei String-Interpolation (mehrere Werte im String) bleibt das Ergebnis immer ein String.
+
+=== Verschachtelte Platzhalter
+
+Platzhalter können ineinander verschachtelt werden:
+
+[source]
+----
+{{outer:{{inner:value}}}}
+----
+
+==== Verarbeitungsreihenfolge
+
+Das System löst verschachtelte Platzhalter von innen nach außen auf:
+
+[source,typescript]
+----
+// Template
+"{{time:format:{{gen:number:1710508545}}:dd.MM.yyyy}}"
+
+// Schritt 1: Innerster Platzhalter
+"{{time:format:1710508545:dd.MM.yyyy}}"
+
+// Schritt 2: Äußerer Platzhalter
+"15.03.2024"
+----
+
+==== Praktisches Beispiel
+
+[source,json]
+----
+{
+  "filename": "train_{{gen:zugnummer:4837}}_{{time:calc:0:yyyy-MM-dd}}.json"
+}
+----
+
+Ergebnis:
+[source,json]
+----
+{
+  "filename": "train_4837_2025-03-15.json"
+}
+----
+
+=== Multi-Phase Processing
+
+Verarbeite Templates in mehreren Phasen mit selektiver Plugin-Ausführung.
+
+==== Warum Multi-Phase?
+
+In E2E-Tests gibt es oft verschiedene Phasen:
+
+1. **Gen-Phase**: Generiere Testdaten (UUIDs, IDs)
+2. **Time-Phase**: Berechne Zeitwerte
+3. **Compare-Phase**: Erstelle Matcher für Vergleiche
+
+==== Beispiel
+
+[source,typescript]
+----
+const template = JSON.stringify({
+  id: '{{gen:uuid:test-123}}',
+  timestamp: '{{time:calc:0:seconds}}',
+  data: 'static'
+});
+
+// Phase 1: Nur Gen-Plugins
+const afterGen = await engine.processGenerate(template, {
+  format: 'json',
+  mode: 'generate',
+  includePlugins: ['gen']
+});
+// Result: { id: "test-123", timestamp: "{{time:calc:0:seconds}}", data: "static" }
+
+// Phase 2: Nur Time-Plugins
+const afterTime = await engine.processGenerate(afterGen, {
+  format: 'json',
+  mode: 'generate',
+  includePlugins: ['time'],
+  context: { startTimeTest: Date.now() }
+});
+// Result: { id: "test-123", timestamp: 1710508545, data: "static" }
+----
+
+==== includePlugins vs excludePlugins
+
+[source,typescript]
+----
+// Nur bestimmte Plugins verwenden
+{
+  includePlugins: ['gen', 'time']
+}
+
+// Alle außer bestimmte Plugins verwenden
+{
+  excludePlugins: ['compare']
+}
+----
+
+=== Generate vs Compare Mode
+
+Das System unterstützt zwei Modi:
+
+==== Generate Mode
+
+Erzeugt konkrete Werte:
+
+[source,typescript]
+----
+await engine.processGenerate(template, {
+  mode: 'generate',
+  // ...
+});
+
+// Ergebnis: Konkrete Werte
+{ zugnummer: 4837, timestamp: 1710508545 }
+----
+
+==== Compare Mode
+
+Erzeugt Matcher für Vergleiche (in späteren Phasen):
+
+[source,typescript]
+----
+await engine.processCompare(actual, expected, {
+  mode: 'compare',
+  // ...
+});
+
+// Ergebnis: MatchResult mit success/errors
+----
+
+NOTE: Compare-Mode ist aktuell in Entwicklung (Phase 6-8 des Projekts).
+
+=== Context und Zeitverwaltung
+
+Der Context ist zentral für zeitabhängige Tests.
+
+==== Context-Struktur
+
+[source,typescript]
+----
+interface ProcessContext {
+  // Primäre Basis-Zeit (wird bevorzugt)
+  startTimeTest?: number | string;
+
+  // Alternative Basis-Zeit
+  startTimeScript?: number | string;
+
+  // Custom-Felder für eigene Plugins
+  [key: string]: any;
+}
+----
+
+==== Zeit-Prioritäten
+
+TimePlugin nutzt Zeitwerte in dieser Reihenfolge:
+
+1. `context.startTimeTest` (höchste Priorität)
+2. `context.startTimeScript`
+3. Aktuelle Zeit (`DateTime.utc()`)
+
+[source,typescript]
+----
+const result = await engine.processGenerate(template, {
+  format: 'json',
+  mode: 'generate',
+  context: {
+    startTimeTest: new Date('2025-03-15T12:00:00Z').getTime()
+  }
+});
+----
+
+==== Zeitformat-Unterstützung
+
+Context-Zeitwerte können verschiedene Formate haben:
+
+[source,typescript]
+----
+// Unix Timestamp (Millisekunden)
+{ startTimeTest: 1710504000000 }
+
+// Unix Timestamp (Sekunden, < 10 Milliarden)
+{ startTimeTest: 1710504000 }
+
+// ISO String
+{ startTimeTest: '2025-03-15T12:00:00Z' }
+
+// Timestamp als String
+{ startTimeTest: '1710504000000' }
+----
+
+=== AST-basierte JSON-Verarbeitung
+
+Das System nutzt einen AST (Abstract Syntax Tree) für JSON.
+
+==== Wie es funktioniert
+
+[source]
+----
+1. JSON parsen → AST
+2. AST traversieren (rekursiv)
+3. Bei jedem Node:
+   - Ist es ein String?
+   - Enthält er Platzhalter?
+   - Ist es ein "Pure Placeholder" oder "String Interpolation"?
+4. Platzhalter ersetzen
+5. Typ anpassen wenn nötig
+6. AST → JSON
+----
+
+==== Pure Placeholder
+
+Der gesamte String ist ein einzelner Platzhalter:
+
+[source,json]
+----
+{
+  "value": "{{gen:number:42}}"
+}
+----
+
+→ Node-Typ wird geändert zu Number:
+
+[source,json]
+----
+{
+  "value": 42
+}
+----
+
+==== String Interpolation
+
+Der String enthält Text + Platzhalter:
+
+[source,json]
+----
+{
+  "value": "Count: {{gen:number:42}}"
+}
+----
+
+→ Bleibt ein String:
+
+[source,json]
+----
+{
+  "value": "Count: 42"
+}
+----
+
+=== Transform Pipeline
+
+Transformiere Werte nach der Placeholder-Auflösung.
+
+==== Syntax
+
+[source]
+----
+{{module:action:args|transform}}
+----
+
+==== Verfügbare Transforms
+
+[cols="1,2,2"]
+|===
+|Transform |Beschreibung |Beispiel
+
+|`toNumber`
+|Wandelt in Number um
+|`{{gen:string:42\|toNumber}}` → `42`
+
+|`toString`
+|Wandelt in String um
+|`{{gen:number:42\|toString}}` → `"42"`
+
+|`toBoolean`
+|Wandelt in Boolean um
+|`{{gen:string:true\|toBoolean}}` → `true`
+|===
+
+==== Beispiele
+
+[source,typescript]
+----
+// String zu Number
+{
+  "count": "{{gen:string:42|toNumber}}"
+}
+// Result: { count: 42 }
+
+// Number zu String
+{
+  "id": "{{gen:number:12345|toString}}"
+}
+// Result: { id: "12345" }
+
+// String zu Boolean
+{
+  "active": "{{gen:string:true|toBoolean}}"
+}
+// Result: { active: true }
+----
+
+==== Eigene Transforms
+
+Sie können eigene Transforms registrieren:
+
+[source,typescript]
+----
+import { Transform } from '@aikotools/placeholder';
+
+class ToUpperTransform implements Transform {
+  readonly name = 'toUpper';
+
+  transform(value: any): any {
+    return String(value).toUpperCase();
+  }
+}
+
+engine.registerTransforms([new ToUpperTransform()]);
+
+// Verwendung
+"{{gen:string:hello|toUpper}}" → "HELLO"
+----

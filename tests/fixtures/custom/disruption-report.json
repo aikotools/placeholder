@@ -1,0 +1,41 @@
+{
+  "reportId": "{{gen:uuid:disruption-2025-042}}",
+  "title": "Verspätungsmeldung - {{train:icenumber:517}}",
+  "timestamp": "{{time:calc:0:seconds}}",
+  "trains": [
+    {
+      "trainNumber": "{{train:icenumber:517}}",
+      "type": "{{train:type:ICE}}",
+      "currentStation": "{{train:station:Frankfurt Hbf}}",
+      "delay": "{{train:delay:25}}",
+      "platform": "{{train:platform:12}}",
+      "status": "delayed",
+      "passengers": "{{gen:number:342}}"
+    },
+    {
+      "trainNumber": "{{train:icenumber:891}}",
+      "type": "{{train:type:IC}}",
+      "currentStation": "{{train:station:Köln Hbf}}",
+      "delay": "{{train:delay:12}}",
+      "platform": "{{train:platform:8}}",
+      "status": "delayed",
+      "passengers": "{{gen:number:198}}"
+    },
+    {
+      "trainNumber": "{{train:icenumber:234}}",
+      "type": "{{train:type:ICE}}",
+      "currentStation": "{{train:station:Hamburg Hbf}}",
+      "delay": "{{train:delay:0}}",
+      "platform": "{{train:platform:5}}",
+      "status": "on-time",
+      "passengers": "{{gen:number:412}}"
+    }
+  ],
+  "summary": {
+    "totalTrains": "{{gen:number:3}}",
+    "delayedTrains": "{{gen:number:2}}",
+    "onTimeTrains": "{{gen:number:1}}",
+    "averageDelay": "{{gen:number:12|toNumber}}",
+    "reportGenerated": "{{time:calc:0:yyyy-MM-dd HH\\:mm\\:ss}}"
+  }
+}

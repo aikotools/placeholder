@@ -1,0 +1,328 @@
+== Transforms
+
+=== Übersicht
+
+Transforms ermöglichen es, Werte nach der Placeholder-Auflösung zu transformieren. Sie werden mit dem Pipe-Symbol `|` an Platzhalter angehängt.
+
+=== Standard-Transforms
+
+==== toNumber
+
+Wandelt einen Wert in eine Zahl um.
+
+**Syntax:**
+[source]
+----
+{{...|toNumber}}
+----
+
+**Beispiele:**
+
+[source]
+----
+{{gen:string:42|toNumber}}              → 42
+{{gen:string:3.14|toNumber}}            → 3.14
+{{gen:string:-100|toNumber}}            → -100
+----
+
+**JSON mit Type Preservation:**
+
+[source,json]
+----
+{
+  "count": "{{gen:string:42|toNumber}}"
+}
+----
+
+Ergebnis:
+[source,json]
+----
+{
+  "count": 42
+}
+----
+
+**Fehlerbehandlung:**
+
+Wenn der Wert nicht in eine Zahl konvertiert werden kann, wird `NaN` zurückgegeben.
+
+==== toString
+
+Wandelt einen Wert in einen String um.
+
+**Syntax:**
+[source]
+----
+{{...|toString}}
+----
+
+**Beispiele:**
+
+[source]
+----
+{{gen:number:42|toString}}              → "42"
+{{gen:boolean:true|toString}}           → "true"
+----
+
+**JSON mit Type Preservation:**
+
+[source,json]
+----
+{
+  "id": "{{gen:number:12345|toString}}"
+}
+----
+
+Ergebnis:
+[source,json]
+----
+{
+  "id": "12345"
+}
+----
+
+==== toBoolean
+
+Wandelt einen Wert in einen Boolean um.
+
+**Syntax:**
+[source]
+----
+{{...|toBoolean}}
+----
+
+**True-Werte:**
+
+* String: `"true"`, `"1"`, `"yes"` (case-insensitive)
+* Number: `1`
+* Boolean: `true`
+
+**False-Werte:**
+
+* String: `"false"`, `"0"`, `"no"` (case-insensitive)
+* Number: `0`
+* Boolean: `false`
+
+**Alle anderen Werte:**
+
+Werden als "truthy" (true) oder "falsy" (false) interpretiert nach JavaScript-Regeln.
+
+**Beispiele:**
+
+[source]
+----
+{{gen:string:true|toBoolean}}           → true
+{{gen:string:false|toBoolean}}          → false
+{{gen:string:yes|toBoolean}}            → true
+{{gen:string:no|toBoolean}}             → false
+{{gen:number:1|toBoolean}}              → true
+{{gen:number:0|toBoolean}}              → false
+{{gen:string:hello|toBoolean}}          → true (truthy)
+----
+
+**JSON mit Type Preservation:**
+
+[source,json]
+----
+{
+  "active": "{{gen:string:true|toBoolean}}"
+}
+----
+
+Ergebnis:
+[source,json]
+----
+{
+  "active": true
+}
+----
+
+=== Transform-Reihenfolge
+
+Transforms werden in der Reihenfolge angewendet, in der sie angegeben sind:
+
+[source]
+----
+{{gen:string:42|toNumber|toString}}
+----
+
+1. Plugin-Auflösung: `"42"` (String)
+2. `toNumber`: `42` (Number)
+3. `toString`: `"42"` (String)
+
+=== Eigene Transforms erstellen
+
+Sie können eigene Transforms erstellen, indem Sie das `Transform` Interface implementieren.
+
+==== Transform-Interface
+
+[source,typescript]
+----
+interface Transform {
+  // Name des Transforms
+  readonly name: string;
+
+  // Transformations-Funktion
+  transform(value: any): any;
+}
+----
+
+==== Beispiel: toUpper Transform
+
+[source,typescript]
+----
+import { Transform } from '@aikotools/placeholder';
+
+export class ToUpperTransform implements Transform {
+  readonly name = 'toUpper';
+
+  transform(value: any): any {
+    // Wandle Wert in String und dann in Uppercase
+    return String(value).toUpperCase();
+  }
+}
+----
+
+==== Beispiel: round Transform
+
+[source,typescript]
+----
+import { Transform } from '@aikotools/placeholder';
+
+export class RoundTransform implements Transform {
+  readonly name = 'round';
+
+  transform(value: any): any {
+    const num = parseFloat(value);
+    if (isNaN(num)) {
+      throw new Error(`Round transform: invalid number '${value}'`);
+    }
+    return Math.round(num);
+  }
+}
+----
+
+==== Transform registrieren
+
+[source,typescript]
+----
+import { PlaceholderEngine } from '@aikotools/placeholder';
+import { ToUpperTransform, RoundTransform } from './transforms';
+
+const engine = new PlaceholderEngine();
+
+// Einzeln registrieren
+engine.registerTransforms([
+  new ToUpperTransform(),
+  new RoundTransform()
+]);
+
+// Verwendung
+"{{gen:string:hello|toUpper}}"    → "HELLO"
+"{{gen:number:3.7|round}}"         → 4
+----
+
+=== Transform mit Parametern
+
+Aktuell unterstützen Transforms keine direkten Parameter. Wenn Sie parametrisierbare Transformationen benötigen, sollten Sie stattdessen ein Plugin erstellen.
+
+**Beispiel:**
+
+Anstatt `{{value|round:2}}` (funktioniert nicht), nutzen Sie:
+
+[source,typescript]
+----
+// Ein Math-Plugin mit round-Action
+{{math:round:3.14159:2}}  → 3.14
+----
+
+=== Best Practices
+
+==== 1. Minimale Transforms verwenden
+
+Nutzen Sie Transforms sparsam. Oft ist es besser, die Logik im Plugin zu haben:
+
+[source]
+----
+// ❌ Nicht optimal
+{{gen:string:42|toNumber}}
+
+// ✅ Besser
+{{gen:number:42}}
+----
+
+==== 2. Type Preservation beachten
+
+Transforms ändern den Typ des Ergebnisses:
+
+[source,json]
+----
+// Original (ohne Transform): Number
+{
+  "count": "{{gen:number:42}}"
+}
+
+// Mit Transform: String
+{
+  "count": "{{gen:number:42|toString}}"
+}
+----
+
+==== 3. Fehlerbehandlung
+
+Ihre Transforms sollten robuste Fehlerbehandlung haben:
+
+[source,typescript]
+----
+transform(value: any): any {
+  if (value === null || value === undefined) {
+    throw new Error('Transform: value is null or undefined');
+  }
+
+  const num = parseFloat(value);
+  if (isNaN(num)) {
+    throw new Error(`Transform: invalid number '${value}'`);
+  }
+
+  return num;
+}
+----
+
+==== 4. Idempotenz
+
+Transforms sollten idempotent sein (mehrfache Anwendung = einmalige Anwendung):
+
+[source,typescript]
+----
+// ✅ Idempotent
+toUpper("hello")  → "HELLO"
+toUpper("HELLO")  → "HELLO"
+
+// ❌ Nicht idempotent (problematisch)
+increment(5)  → 6
+increment(6)  → 7
+----
+
+=== Debugging
+
+Bei Transform-Fehlern erhalten Sie detaillierte Fehlermeldungen:
+
+[source]
+----
+Error: Transform 'toNumber' failed for value 'abc': invalid number
+  at ToNumberTransform.transform (transforms/ToNumberTransform.ts:12)
+  at PlaceholderEngine.applyTransforms (core/PlaceholderEngine.ts:145)
+----
+
+Sie können Transforms auch isoliert testen:
+
+[source,typescript]
+----
+import { ToNumberTransform } from '@aikotools/placeholder';
+
+const transform = new ToNumberTransform();
+
+console.log(transform.transform('42'));    // 42
+console.log(transform.transform('3.14'));  // 3.14
+console.log(transform.transform('abc'));   // NaN
+----

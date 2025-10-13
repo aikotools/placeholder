@@ -1,0 +1,61 @@
+{
+  "report": {
+    "id": "report-2025-001",
+    "title": "E2E Test Report - Train System",
+    "generated": "2025-03-15:12:00:00",
+    "generatedTimestamp": 1742040000
+  },
+  "testRun": {
+    "runId": "testrun-001",
+    "startTime": 1742040000,
+    "endTime": 1742043600,
+    "durationSeconds": 3600,
+    "startDate": "15.03.2025",
+    "startTimeFormatted": "12:00:00",
+    "endTimeFormatted": "13:00:00"
+  },
+  "statistics": {
+    "totalTests": 150,
+    "passed": 145,
+    "failed": 5,
+    "skipped": 0,
+    "successRate": 96.7,
+    "enabled": true
+  },
+  "tests": [
+    {
+      "id": "test-001",
+      "name": "Train Departure Test",
+      "status": "PASSED",
+      "duration": 120,
+      "startTime": 1742040000,
+      "endTime": 1742040120
+    },
+    {
+      "id": "test-002",
+      "name": "Train Arrival Test",
+      "status": "PASSED",
+      "duration": 180,
+      "startTime": 1742040120,
+      "endTime": 1742040300
+    },
+    {
+      "id": "test-003",
+      "name": "Platform Assignment Test",
+      "status": "FAILED",
+      "duration": 45,
+      "startTime": 1742040300,
+      "endTime": 1742040345
+    }
+  ],
+  "environment": {
+    "name": "test",
+    "version": "1.0.0",
+    "build": 42
+  },
+  "artifacts": {
+    "logFile": "test-run_2025-03-15_testrun-001.log",
+    "screenshotDir": "screenshots/run_20250315_001",
+    "reportFile": "report_2025-03-15:12-00-00.html"
+  }
+}

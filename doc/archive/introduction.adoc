@@ -1,0 +1,138 @@
+== Einführung
+
+=== Motivation
+
+Bei End-to-End-Tests müssen häufig dynamische Testdaten erzeugt und verglichen werden. Typische Herausforderungen sind:
+
+* **Zeitabhängige Daten**: Timestamps, die relativ zu einem Teststart berechnet werden
+* **Generierte IDs**: UUIDs, Zugnummern, die konsistent bleiben müssen
+* **Type-Preservation**: JSON-Werte müssen die korrekten Typen behalten (Zahlen, nicht Strings)
+* **Verschachtelte Platzhalter**: `{{compare:startsWith:{{time:calc:0:dd.MM.yyyy}}}}`
+* **Multi-Phase-Processing**: Erst generieren, dann vergleichen
+
+=== Kernfeatures
+
+[cols="1,3"]
+|===
+|Feature |Beschreibung
+
+|**Unified Syntax**
+|Einheitliche `{{...}}` Syntax für alle Platzhalter
+
+|**Type Preservation**
+|Automatische Typ-Erhaltung in JSON (numbers bleiben numbers, nicht strings)
+
+|**Nested Placeholders**
+|Beliebig verschachtelte Platzhalter: `{{outer:{{inner:value}}}}`
+
+|**Plugin System**
+|Erweiterbar durch eigene Plugins (Time, Generator, Custom)
+
+|**Transform Pipeline**
+|Werte transformieren: `{{gen:string:42\|toNumber}}`
+
+|**Multi-Mode**
+|Generate-Mode (Werte erzeugen) und Compare-Mode (Matcher erzeugen)
+
+|**AST-Based JSON**
+|Intelligente JSON-Verarbeitung mit Type-Preservation
+
+|**Multi-Phase**
+|Selektive Plugin-Ausführung (Gen → Time → Compare)
+|===
+
+=== Architektur-Überblick
+
+[source]
+----
+┌─────────────────────────────────────────────────────┐
+│              PlaceholderEngine                      │
+│  (Orchestriert den gesamten Verarbeitungsprozess)  │
+└─────────────────────────────────────────────────────┘
+                       │
+        ┌──────────────┼──────────────┐
+        ▼              ▼              ▼
+  ┌─────────┐    ┌──────────┐   ┌──────────┐
+  │  JSON   │    │   Text   │   │  Custom  │
+  │Processor│    │Processor │   │Processor │
+  └─────────┘    └──────────┘   └──────────┘
+        │              │              │
+        └──────────────┼──────────────┘
+                       ▼
+        ┌────────────────────────────────┐
+        │     PlaceholderParser          │
+        │  (Parst {{module:action:args}})│
+        └────────────────────────────────┘
+                       │
+        ┌──────────────┼──────────────┐
+        ▼              ▼              ▼
+  ┌──────────┐  ┌───────────┐  ┌──────────┐
+  │   Time   │  │ Generator │  │  Custom  │
+  │  Plugin  │  │  Plugin   │  │  Plugin  │
+  └──────────┘  └───────────┘  └──────────┘
+        │              │              │
+        └──────────────┼──────────────┘
+                       ▼
+        ┌────────────────────────────────┐
+        │        Transforms              │
+        │  (toNumber, toString, etc.)    │
+        └────────────────────────────────┘
+----
+
+=== Use Cases
+
+==== 1. Testdaten-Generierung
+
+Erzeuge konsistente Testdaten mit vorhersagbaren Werten:
+
+[source,json]
+----
+{
+  "testId": "{{gen:uuid:test-12345}}",
+  "zugnummer": "{{gen:zugnummer:4837}}",
+  "timestamp": "{{time:calc:0:seconds}}"
+}
+----
+
+Ergebnis:
+[source,json]
+----
+{
+  "testId": "test-12345",
+  "zugnummer": 4837,
+  "timestamp": 1710508545
+}
+----
+
+==== 2. Zeitabhängige Tests
+
+Berechne Timestamps relativ zum Teststart:
+
+[source,json]
+----
+{
+  "startTime": "{{time:calc:0:seconds}}",
+  "endTime": "{{time:calc:300:seconds}}",
+  "date": "{{time:calc:0:dd.MM.yyyy}}"
+}
+----
+
+==== 3. String-Interpolation
+
+Kombiniere multiple Platzhalter in Strings:
+
+[source,json]
+----
+{
+  "filename": "{{gen:zugnummer:4837}}_RGE_{{time:calc:0:dd.MM.yyyy}}_Start"
+}
+----
+
+Ergebnis: `"4837_RGE_15.03.2025_Start"`
+
+=== Technologie-Stack
+
+* **TypeScript**: Typ-sichere Entwicklung
+* **Luxon**: Robuste DateTime-Operationen mit Timezone-Support
+* **Vite**: Schneller Build und Development Server
+* **Vitest**: Modernes Testing Framework

@@ -1,0 +1,30 @@
+{
+  "scheduleId": "{{gen:uuid:schedule-001}}",
+  "train": {
+    "designation": "{{train:icenumber:723}}",
+    "type": "{{train:type:ICE}}",
+    "operator": "DB Fernverkehr"
+  },
+  "route": {
+    "departure": {
+      "station": "{{train:station:Berlin Hbf}}",
+      "platform": "{{train:platform:7}}",
+      "scheduledTime": "{{time:calc:0:HH\\:mm}}",
+      "actualTime": "{{time:calc:300:HH\\:mm}}",
+      "delay": "{{train:delay:5}}"
+    },
+    "arrival": {
+      "station": "{{train:station:München Hbf}}",
+      "platform": "{{train:platform:3}}",
+      "scheduledTime": "{{time:calc:21600:HH\\:mm}}",
+      "estimatedTime": "{{time:calc:21900:HH\\:mm}}",
+      "delay": "{{train:delay:5}}"
+    }
+  },
+  "metadata": {
+    "createdAt": "{{time:calc:0:seconds}}",
+    "validFrom": "{{time:calc:0:yyyy-MM-dd}}",
+    "validUntil": "{{time:calc:604800:yyyy-MM-dd}}",
+    "version": "{{gen:number:1}}"
+  }
+}

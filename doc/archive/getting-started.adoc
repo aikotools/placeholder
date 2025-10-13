@@ -1,0 +1,230 @@
+== Getting Started
+
+=== Installation
+
+[source,bash]
+----
+npm install @aikotools/placeholder
+----
+
+oder mit Yarn:
+
+[source,bash]
+----
+yarn add @aikotools/placeholder
+----
+
+=== Schnellstart
+
+==== 1. Engine initialisieren
+
+[source,typescript]
+----
+import { PlaceholderEngine, TimePlugin, GeneratorPlugin } from '@aikotools/placeholder';
+
+const engine = new PlaceholderEngine();
+
+// Plugins registrieren
+engine.registerPlugin(new TimePlugin());
+engine.registerPlugin(new GeneratorPlugin());
+
+// Standard-Transforms sind bereits registriert
+// (toNumber, toString, toBoolean)
+----
+
+==== 2. Template verarbeiten (Generate-Mode)
+
+[source,typescript]
+----
+const template = JSON.stringify({
+  id: '{{gen:uuid:test-123}}',
+  zugnummer: '{{gen:zugnummer:4837}}',
+  timestamp: '{{time:calc:300:seconds}}',
+  date: '{{time:calc:0:dd.MM.yyyy}}'
+});
+
+const result = await engine.processGenerate(template, {
+  format: 'json',
+  mode: 'generate',
+  context: {
+    startTimeTest: Date.now()
+  }
+});
+
+const data = JSON.parse(result);
+console.log(data);
+// {
+//   id: "test-123",
+//   zugnummer: 4837,           // Number!
+//   timestamp: 1710508545,      // Number!
+//   date: "15.03.2025"         // String
+// }
+----
+
+==== 3. Text-Templates
+
+[source,typescript]
+----
+const text = 'Train {{gen:zugnummer:4837}} departs at {{time:calc:0:HH:mm}}';
+
+const result = await engine.processGenerate(text, {
+  format: 'text',
+  mode: 'generate',
+  context: {
+    startTimeTest: Date.now()
+  }
+});
+
+console.log(result);
+// "Train 4837 departs at 12:00"
+----
+
+=== Grundkonzepte
+
+==== Platzhalter-Syntax
+
+Alle Platzhalter folgen dem Schema:
+
+[source]
+----
+{{module:action:arg1:arg2:...|transform}}
+----
+
+* **module**: Name des Plugins (z.B. `gen`, `time`)
+* **action**: Aktion des Plugins (z.B. `uuid`, `calc`)
+* **args**: Argumente, getrennt durch `:`
+* **transform**: Optional, Transformation (z.B. `toNumber`)
+
+Beispiele:
+
+[source]
+----
+{{gen:uuid:abc123}}
+{{gen:zugnummer:4837}}
+{{time:calc:300:seconds}}
+{{time:calc:0:dd.MM.yyyy}}
+{{gen:string:42|toNumber}}
+----
+
+==== Context
+
+Der Context enthält Laufzeit-Informationen:
+
+[source,typescript]
+----
+const context = {
+  // Basis-Zeit für time:calc (bevorzugt)
+  startTimeTest: Date.now(),
+
+  // Alternative Basis-Zeit
+  startTimeScript: Date.now(),
+
+  // Custom-Felder
+  testcaseId: 'TC-001',
+  environment: 'test'
+};
+----
+
+==== ProcessOptions
+
+[source,typescript]
+----
+interface ProcessOptions {
+  // Format des Templates
+  format: 'json' | 'text';
+
+  // Modus (generate oder compare)
+  mode: 'generate' | 'compare';
+
+  // Kontext für die Verarbeitung
+  context?: Record<string, any>;
+
+  // Nur bestimmte Plugins verwenden
+  includePlugins?: string[];
+
+  // Bestimmte Plugins ausschließen
+  excludePlugins?: string[];
+}
+----
+
+=== Beispiel-Projekt
+
+==== Projektstruktur
+
+[source]
+----
+my-e2e-tests/
+├── src/
+│   ├── templates/
+│   │   ├── train-expected.json
+│   │   └── train-actual.json
+│   └── tests/
+│       └── train.test.ts
+├── package.json
+└── tsconfig.json
+----
+
+==== Template-Datei
+
+.templates/train-expected.json
+[source,json]
+----
+{
+  "testId": "{{gen:uuid:test-train-001}}",
+  "train": {
+    "number": "{{gen:zugnummer:4837}}",
+    "type": "RGE"
+  },
+  "timing": {
+    "startTime": "{{time:calc:0:seconds}}",
+    "endTime": "{{time:calc:300:seconds}}",
+    "date": "{{time:calc:0:dd.MM.yyyy}}"
+  }
+}
+----
+
+==== Test-Datei
+
+.tests/train.test.ts
+[source,typescript]
+----
+import { describe, it, expect } from 'vitest';
+import { PlaceholderEngine, TimePlugin, GeneratorPlugin } from '@aikotools/placeholder';
+import * as fs from 'fs/promises';
+
+describe('Train E2E Test', () => {
+  let engine: PlaceholderEngine;
+
+  beforeEach(() => {
+    engine = new PlaceholderEngine();
+    engine.registerPlugin(new TimePlugin());
+    engine.registerPlugin(new GeneratorPlugin());
+  });
+
+  it('should generate expected train data', async () => {
+    const template = await fs.readFile('templates/train-expected.json', 'utf-8');
+
+    const result = await engine.processGenerate(template, {
+      format: 'json',
+      mode: 'generate',
+      context: {
+        startTimeTest: new Date('2025-03-15T12:00:00Z').getTime()
+      }
+    });
+
+    const data = JSON.parse(result);
+
+    expect(data.testId).toBe('test-train-001');
+    expect(data.train.number).toBe(4837);
+    expect(typeof data.train.number).toBe('number');
+    expect(data.timing.date).toBe('15.03.2025');
+  });
+});
+----
+
+=== Nächste Schritte
+
+* Lesen Sie die link:core-concepts.adoc[Kernkonzepte], um das System besser zu verstehen
+* Erkunden Sie die verfügbaren link:plugins.adoc[Plugins]
+* Lernen Sie link:transforms.adoc[Transforms] kennen
+* Schauen Sie sich weitere link:examples.adoc[Beispiele] an

@@ -1,0 +1,41 @@
+{
+  "reportId": "disruption-2025-042",
+  "title": "Verspätungsmeldung - ICE 517",
+  "timestamp": 1742040000,
+  "trains": [
+    {
+      "trainNumber": "ICE 517",
+      "type": "ICE",
+      "currentStation": "Frankfurt Hbf",
+      "delay": 25,
+      "platform": 12,
+      "status": "delayed",
+      "passengers": 342
+    },
+    {
+      "trainNumber": "ICE 891",
+      "type": "IC",
+      "currentStation": "Köln Hbf",
+      "delay": 12,
+      "platform": 8,
+      "status": "delayed",
+      "passengers": 198
+    },
+    {
+      "trainNumber": "ICE 234",
+      "type": "ICE",
+      "currentStation": "Hamburg Hbf",
+      "delay": 0,
+      "platform": 5,
+      "status": "on-time",
+      "passengers": 412
+    }
+  ],
+  "summary": {
+    "totalTrains": 3,
+    "delayedTrains": 2,
+    "onTimeTrains": 1,
+    "averageDelay": 12,
+    "reportGenerated": "2025-03-15 12:00:00"
+  }
+}

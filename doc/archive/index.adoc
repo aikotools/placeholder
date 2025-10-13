@@ -1,0 +1,32 @@
+= @aikotools/placeholder - Placeholder Engine
+:toc: left
+:toclevels: 3
+:sectnums:
+:icons: font
+:source-highlighter: highlight.js
+:imagesdir: images
+
+[.lead]
+Ein mächtiges Template-System mit Generate- und Compare-Modi für E2E-Testing. Unterstützt verschachtelte Platzhalter, Transformationen und intelligentes Matching.
+
+== Übersicht
+
+@aikotools/placeholder ist ein TypeScript-basiertes Placeholder-Engine-System, das entwickelt wurde, um komplexe Template-Szenarien in End-to-End-Tests zu handhaben.
+
+include::introduction.adoc[]
+
+include::getting-started.adoc[]
+
+include::core-concepts.adoc[]
+
+include::plugins.adoc[]
+
+include::transforms.adoc[]
+
+include::api-reference.adoc[]
+
+include::examples.adoc[]
+
+== Lizenz
+
+Copyright © 2025. Alle Rechte vorbehalten.

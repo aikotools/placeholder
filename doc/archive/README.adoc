@@ -1,0 +1,110 @@
+= @aikotools/placeholder - Dokumentation
+:toc: left
+:icons: font
+
+== Dokumentations-Übersicht
+
+Diese Dokumentation beschreibt das @aikotools/placeholder Placeholder Engine System.
+
+=== Inhalte
+
+* link:index.adoc[**Vollständige Dokumentation**] - Die Haupt-Dokumentation mit allen Kapiteln
+
+==== Einzelne Kapitel
+
+* link:introduction.adoc[Einführung] - Motivation, Features, Architektur
+* link:getting-started.adoc[Getting Started] - Installation, Schnellstart, Beispiel-Projekt
+* link:core-concepts.adoc[Kernkonzepte] - Type Preservation, Verschachtelte Platzhalter, Multi-Phase
+* link:plugins.adoc[Plugins] - TimePlugin, GeneratorPlugin, eigene Plugins
+* link:transforms.adoc[Transforms] - Standard-Transforms, eigene Transforms
+* link:api-reference.adoc[API-Referenz] - Vollständige API-Dokumentation
+* link:examples.adoc[Beispiele] - Praktische Beispiele und Use Cases
+
+=== Schnellzugriff
+
+==== Installation
+
+[source,bash]
+----
+npm install @aikotools/placeholder
+----
+
+==== Minimal-Beispiel
+
+[source,typescript]
+----
+import { PlaceholderEngine, TimePlugin, GeneratorPlugin } from '@aikotools/placeholder';
+
+const engine = new PlaceholderEngine();
+engine.registerPlugin(new TimePlugin());
+engine.registerPlugin(new GeneratorPlugin());
+
+const template = JSON.stringify({
+  id: '{{gen:uuid:test-123}}',
+  zugnummer: '{{gen:zugnummer:4837}}',
+  timestamp: '{{time:calc:300:seconds}}'
+});
+
+const result = await engine.processGenerate(template, {
+  format: 'json',
+  mode: 'generate',
+  context: { startTimeTest: Date.now() }
+});
+
+console.log(JSON.parse(result));
+// { id: "test-123", zugnummer: 4837, timestamp: 1710508545 }
+----
+
+=== Dokumentation generieren
+
+==== AsciiDoc zu HTML
+
+Mit AsciiDoctor können Sie die Dokumentation zu HTML konvertieren:
+
+[source,bash]
+----
+# Installation (einmalig)
+gem install asciidoctor
+
+# HTML generieren
+asciidoctor docs/index.adoc -o docs/index.html
+
+# Mit Styling
+asciidoctor docs/index.adoc -o docs/index.html -a stylesheet=asciidoctor.css
+----
+
+==== AsciiDoc zu PDF
+
+[source,bash]
+----
+# Installation (einmalig)
+gem install asciidoctor-pdf
+
+# PDF generieren
+asciidoctor-pdf docs/index.adoc -o docs/@aikotools/placeholder.pdf
+----
+
+=== Dokumentations-Struktur
+
+[source]
+----
+docs/
+├── README.adoc              # Diese Datei
+├── index.adoc               # Haupt-Dokumentation
+├── introduction.adoc        # Einführung
+├── getting-started.adoc     # Getting Started
+├── core-concepts.adoc       # Kernkonzepte
+├── plugins.adoc             # Plugin-System
+├── transforms.adoc          # Transforms
+├── api-reference.adoc       # API-Referenz
+├── examples.adoc            # Beispiele
+└── images/                  # Bilder (optional)
+----
+
+=== Beitragen
+
+Wenn Sie einen Fehler in der Dokumentation finden oder Verbesserungen vorschlagen möchten, erstellen Sie bitte ein Issue oder Pull Request.
+
+=== Lizenz
+
+Copyright © 2025. Alle Rechte vorbehalten.

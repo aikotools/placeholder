@@ -1,0 +1,11 @@
+# Ignore all generated files in volatile directory
+*
+
+# But keep the directory structure
+!.gitignore
+!example/
+example/*
+!example/.gitkeep
+!custom/
+custom/*
+!custom/.gitkeep
