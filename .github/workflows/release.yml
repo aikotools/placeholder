@@ -31,7 +31,8 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - run: npm ci
+      - run: npm ping 
+      - run: npm ci -ddd 
       - run: npm test
 
       - run: npx semantic-release
