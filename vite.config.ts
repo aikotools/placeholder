@@ -6,15 +6,16 @@ export default defineConfig({
   build: {
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
-      name: 'AikotoolsDatafilter',
-      fileName: 'aikotools-datafilter',
-      formats: ['es'],
+      name: 'AikotoolsPlaceholder',
+      fileName: (format) => `aikotools-placeholder.${format === 'es' ? 'mjs' : 'cjs'}`,
+      formats: ['es', 'cjs'],
     },
     rollupOptions: {
-      external: ['luxon'],
+      external: ['luxon', 'xml2js'],
       output: {
         globals: {
           luxon: 'luxon',
+          xml2js: 'xml2js',
         },
       },
     },

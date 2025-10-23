@@ -3,13 +3,19 @@
   "version": "0.0.0-semantic-release",
   "description": "Advanced placeholder template engine with generate and compare modes",
   "type": "module",
-  "main": "./dist/aikotools-placeholder.js",
-  "module": "./dist/aikotools-placeholder.js",
+  "main": "./dist/aikotools-placeholder.cjs",
+  "module": "./dist/aikotools-placeholder.mjs",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/aikotools-placeholder.js",
-      "types": "./dist/index.d.ts"
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/aikotools-placeholder.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/aikotools-placeholder.cjs"
+      }
     }
   },
   "files": [
